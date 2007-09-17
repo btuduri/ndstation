@@ -1,6 +1,5 @@
 #include <nds.h>
 #include <stdio.h>
-#include <malloc.h>
 #include <fat.h>
 #include <string.h>
 
