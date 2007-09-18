@@ -28,6 +28,9 @@ void decompressToVRAM(const void* source, void* dest)
 
 void loadSplash(void) {
 
+	// load a splash/loading screen
+	// this function is f***ed up at the moment
+
 	/*EFS_FILE* splashFile;
 	int fileSize = EFS_size("/splash.lz7");
 	
@@ -44,7 +47,7 @@ void loadSplash(void) {
 	free(splashData);*/
 	
 	
-	EFS_FILE* splashFile = EFS_fopen("/splash.lz7");
+	/*EFS_FILE* splashFile = EFS_fopen("/splash.lz7");
 	int fileSize = EFS_GetFileSize(splashFile);
 	char* splashCompData = malloc(fileSize);
 	char* splashDecompData = malloc(256*192*2);
@@ -56,11 +59,13 @@ void loadSplash(void) {
 	memcpy((void*)BG_GFX, (void*)splashDecompData, 256*192*2);
 	
 	free(splashCompData);
-	free(splashDecompData);
+	free(splashDecompData);*/
 	
 }
 
 void loadBorder(void) {
+
+	// load the border used in GBA mode
 
 	videoSetMode(MODE_5_2D | DISPLAY_BG3_ACTIVE);
     videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
@@ -83,7 +88,7 @@ void loadBorder(void) {
 	
 	EFS_fread(borderData, 1, fileSize, borderFile);
 	EFS_fclose(borderFile);
-		
+
 	decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(0));
 	decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(8));
 

@@ -269,7 +269,7 @@ bool EFS_Init(void) {
         fseek(nds_file, 172, SEEK_SET);
         fread(buffer, 6, 1, nds_file);
         buffer[6] = '\0';
-        
+
         if(strcmp(buffer, "PASSDF") == 0) {
             // loader present
             fseek(nds_file, 512+64, SEEK_SET);
@@ -286,7 +286,7 @@ bool EFS_Init(void) {
             fread(&fat_offset, sizeof(u32), 1, nds_file);
             hasLoader = false;
         }
-        
+
     }
 
     return (found && nds_file);
@@ -311,7 +311,7 @@ EFS_FILE *EFS_fopen(char *fname) {
 
     if(!nds_file)
         return NULL;
-        
+
     // search for the file in NitroFS
     filematch = false;
     searchmode = EFS_SEARCHFILE;
@@ -397,7 +397,7 @@ extern EFS_DIR *EFS_diropen(const char *path) {
 
     if(!nds_file)
         return NULL;
-        
+
     // search for the directory in NitroFS
     filematch = false;
     searchmode = EFS_SEARCHDIR;
@@ -430,7 +430,7 @@ extern void EFS_dirreset(EFS_DIR *dir) {
 extern int EFS_dirnext(EFS_DIR *dir, char *fname) {
     if(!nds_file)
         return -1;
-        
+
     // search for the file in NitroFS
     filematch = false;
     searchmode = EFS_LISTDIR;
