@@ -1,9 +1,9 @@
 #include <nds.h>
 #include <fat.h>
-#include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "sram.h"
 #include "3in1.h"
 #include "efs_lib.h"
@@ -110,7 +110,7 @@ void writeFileToSRAM(char* filename)
     blankSRAM((64+256)/4);
 
     int ret = 1;
-		
+
 	int i = 16;
     for (i = getStartpage(); i < MAX_SRAM_PAGES && ret == 1; i ++)
     {

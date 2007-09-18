@@ -1,10 +1,9 @@
 
 #include <nds.h>
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include <fat.h>
-#include <assert.h>
 #include <zlib.h>
 
 #include "flash.h"
@@ -69,20 +68,20 @@ void writeToNOR(char* filename, int size, int isFATmode)
     SetSerialMode();
 	
 	if(!(checkNOR(filename) && !(keysDown() & KEY_A))){
-		
+
 		u32 kk = 0;
 		u32 address = 0;
-		
+
 	    for(kk=0; kk <= size && kk < MAX_NOR; kk+=0x40000)
 	    {
 	        Block_Erase(kk);
 	    }
-		
+
 	    CloseNorWrite();
 
 		FILE* gbaFile_FAT = NULL;
 		EFS_FILE* gbaFile_EFS = NULL;
-		
+
 		if(isFATmode){
 			gbaFile_FAT = fopen(filename, "rb");
 		} else {
@@ -90,7 +89,7 @@ void writeToNOR(char* filename, int size, int isFATmode)
 		}
 
 		iprintf("Writing GBA game to NOR.\n");
-		
+
 	    OpenNorWrite();
 	    SetSerialMode();
 
@@ -105,13 +104,13 @@ void writeToNOR(char* filename, int size, int isFATmode)
 			WriteNorFlash(address, buf, LEN);
 	        memset (buf, 0xFF, LEN);
 	    }
-		
+
 		if(isFATmode){
 			fclose(gbaFile_FAT);
 		} else {
 			EFS_fclose(gbaFile_EFS);
 		}
-		
+
 	}
 	
     CloseNorWrite();
@@ -251,7 +250,7 @@ int checkNOR(char* filename){
 	
 	if(result == 0)
 		return 1;
-		
+
 	return 0;
 	
 }
