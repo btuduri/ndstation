@@ -4,11 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "sram.h"
 #include "3in1.h"
 #include "efs_lib.h"
+#include "sram.h"
 
-//int sramBufferSize = 0x10000; //65536 bytes
 int sramBufferSize = 0x1000; //4096 bytes == one page
 
 void writeSAV(void) {
