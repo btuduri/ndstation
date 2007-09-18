@@ -1,4 +1,3 @@
-
 #include <nds.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,10 +5,10 @@
 #include <fat.h>
 #include <zlib.h>
 
-#include "flash.h"
 #include "3in1.h"
-#include "sram.h"
 #include "efs_lib.h"
+#include "flash.h"
+#include "sram.h"
 
 int FAT_size(char* path) {
 	FILE* fatFile;

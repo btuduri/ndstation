@@ -1,7 +1,7 @@
 #include <nds.h>
 #include <nds/memory.h>
+
 #include "3in1.h"
-#include "string.h"
 
 #define _PSRAM 0x08060000
 
@@ -14,7 +14,7 @@ void Enable_Arm7DS()
 {
 	REG_EXMEMCNT |= 0x0800;
 }
-//-----------------------------------------
+
 void OpenNorWrite()
 {
 	*(vuint16 *)0x9fe0000 = 0xd200;

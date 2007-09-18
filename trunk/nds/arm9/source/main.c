@@ -4,9 +4,9 @@
 
 #include "efs_lib.h"
 #include "flash.h"
-#include "sram.h"
-#include "reboot.h"
 #include "graphics.h"
+#include "reboot.h"
+#include "sram.h"
 
 int main(void) {
 
