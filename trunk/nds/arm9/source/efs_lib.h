@@ -39,14 +39,14 @@ extern char efs_path[256];
 #ifndef EFS_REAL_FAT_MODE
 
 typedef struct {
-    u32 seek_start;
-    u32 seek_pos;
-    u32 size;
+	u32 seek_start;
+	u32 seek_pos;
+	u32 size;
 } EFS_FILE;
 
 typedef struct {
-    u32 dir_id;
-    u32 curr_seek;
+	u32 dir_id;
+	u32 curr_seek;
 } EFS_DIR;
 
 extern int EFS_size(char* path);
@@ -118,8 +118,8 @@ extern void EFS_dirclose(EFS_DIR *dir);
 #define EFS_feof            feof
 
 inline u32 EFS_GetFileSize(EFS_FILE *file) {
-    fseek(file, 0, SEEK_END);
-    return ftell(file);
+	fseek(file, 0, SEEK_END);
+	return ftell(file);
 }
 
 #define EFS_DIR             DIR_ITER
@@ -128,11 +128,11 @@ inline u32 EFS_GetFileSize(EFS_FILE *file) {
 #define EFS_dirclose        dirclose
 
 inline int EFS_dirnext(EFS_DIR *dir, char *fname) {
-    struct stat st;
-    int err = dirnext(dir, fname, &st);
-    if(!err && (st.st_mode & S_IFDIR))
-        return 1;
-    return err;
+	struct stat st;
+	int err = dirnext(dir, fname, &st);
+	if(!err && (st.st_mode & S_IFDIR))
+		return 1;
+	return err;
 }
 
 #endif  // ifndef EFS_REAL_FAT_MODE
