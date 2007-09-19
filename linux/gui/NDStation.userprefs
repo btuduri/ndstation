@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<UserCombinePreferences filename="/home/dylan/Projects/NDStation/NDStation.mds">
+  <Files>
+    <File filename="Welcome" />
+    <File filename="./NDStation/Main.cs" />
+    <File filename="./NDStation/MainWindow.cs" />
+  </Files>
+  <Views>
+    <ViewMemento Id="MonoDevelop.Ide.Gui.Pads.ProjectPad">
+      <TreeView>
+        <Node expanded="True">
+          <Node name="NDStation" expanded="True">
+            <Node name="Resources" expanded="True">
+              <Node name="top.bmp" expanded="False" selected="True" />
+            </Node>
+            <Node name="UserInterface" expanded="True" />
+          </Node>
+        </Node>
+      </TreeView>
+    </ViewMemento>
+    <ViewMemento Id="MonoDevelop.Ide.Gui.Pads.ClassPad">
+      <TreeView>
+        <Node expanded="True" />
+      </TreeView>
+    </ViewMemento>
+  </Views>
+  <Properties>
+    <Properties>
+      <Property key="ActiveConfiguration" value="Release" />
+      <Property key="ActiveWindow" value="/home/dylan/Projects/NDStation/NDStation/MainWindow.cs" />
+    </Properties>
+  </Properties>
+</UserCombinePreferences>

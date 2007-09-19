@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+mono ~/.ndstation/NDStation.exe
+lock=`cat /tmp/ndstation-tmp/lock`
+inputfilename=`cat /tmp/ndstation-tmp/gba`
+outputfilename=`cat /tmp/ndstation-tmp/nds`
+psram=`cat /tmp/ndstation-tmp/b1`
+compress=`cat /tmp/ndstation-tmp/b2`
+title1=`cat /tmp/ndstation-tmp/t1`
+title2=`cat /tmp/ndstation-tmp/t2`
+title3=`cat /tmp/ndstation-tmp/t3`
+title=`echo $title1";"$title2";"$title3`
+icon1=`cat /tmp/ndstation-tmp/icon`
+
+if [ "$lock" = "1" ]; then	
+	exit 0
+fi
+
+if [ "$psram" = "Active" ]; then	
+	echo "P" > ~/.ndstation/bin/data/mode.txt
+fi
+
+if [ "$psram" = "Normal" ]; then	
+	echo "N" > ~/.ndstation/bin/data/mode.txt
+fi
+
+if [ "$icon1" = "" ]; then	
+	icon=~/.ndstation/bin/defaulticon.bmp
+fi
+
+cd ~/.ndstation/bin
+cp "$inputfilename" ~/.ndstation/bin/data/game.gba
+./ndstool -c file.nds -7 7.bin -9 9.bin -d data -g "NDST" -b icon.bmp "$title"
+./efs file.nds
+cd ~/.ndstation/bin
+cp file.nds "$outputfilename"
+#rm ~/.ndstation/bin/data/mode.txt
