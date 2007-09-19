@@ -330,13 +330,13 @@ void SetShake(u16 data)
 
 bool CheckNorFlashID(void)
 {
-    OpenNorWrite();
-    uint32 id = ReadNorFlashID();
-    chip_reset();
-    CloseNorWrite();
-    if(id!=0x227E2218)
-    {
-        return 0;
-    }
-    return 1;
+	OpenNorWrite();
+	uint32 id = ReadNorFlashID();
+	chip_reset();
+	CloseNorWrite();
+	if(id!=0x227E2218)
+	{
+		return 0;
+	}
+	return 1;
 }

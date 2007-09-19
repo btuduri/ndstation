@@ -17,10 +17,10 @@ int main(void) {
 	if(keysDown() & KEY_START){
 		// if the START button is depressed, we enter console mode
 		videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
-	    vramSetBankA(VRAM_A_MAIN_BG);
-	    BG0_CR = BG_MAP_BASE(31);
-	    BG_PALETTE[255] = RGB15(31,31,31);
-	    consoleInitDefault((u16*)SCREEN_BASE_BLOCK(31), (u16*)CHAR_BASE_BLOCK(0), 16); 
+		vramSetBankA(VRAM_A_MAIN_BG);
+		BG0_CR = BG_MAP_BASE(31);
+		BG_PALETTE[255] = RGB15(31,31,31);
+		consoleInitDefault((u16*)SCREEN_BASE_BLOCK(31), (u16*)CHAR_BASE_BLOCK(0), 16); 
 	} else {
 		// set up the VRAM to load in a splash/loading screen
 		videoSetMode(MODE_5_2D | DISPLAY_BG3_ACTIVE);
@@ -35,16 +35,16 @@ int main(void) {
 		BG3_CY = 0;
 		loadSplash();
 	}
-	
+
 	// lazy way to handle the firmware's GBA screen setting
 	if(PersonalData->_user_data.gbaScreen) lcdSwap();
-	
-    if(fatInitDefault()) {
-        iprintf("Survived FAT init.\n");
-        
-        if(EFS_Init()) {
 
-            iprintf("Survived EFS init.\n");
+	if(fatInitDefault()) {
+		iprintf("Survived FAT init.\n");
+
+		if(EFS_Init()) {
+
+			iprintf("Survived EFS init.\n");
 
 			// backup save to Slot 1
 			writeSAV();
@@ -82,12 +82,12 @@ int main(void) {
 			loadBorder();
 			bootGBA();
 
-        } else {
-            iprintf("Error in EFS init!\n");
-        }
-    } else {
-        iprintf("Error in FAT init!\n");
-    }
+		} else {
+			iprintf("Error in EFS init!\n");
+		}
+	} else {
+		iprintf("Error in FAT init!\n");
+	}
 
 	while(1) {
 		swiWaitForVBlank();
