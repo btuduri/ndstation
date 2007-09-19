@@ -1,0 +1,24 @@
+
+#!/usr/bin/env bash
+#NDStation uninstaller
+NDSTATION=$HOME/.ndstation
+echo "****************
+NDStation Uninstaller
+
+Removes $HOME/.ndstation
+Reverts .bashrc from .bashrc.backup
+**************"
+echo -n "Continue[y,N]:"
+read input
+
+if [ "$input" = "y" ]; then
+       if [ -e $NDSTATION]; then
+       rm -Rf $NDSTATION
+       mv $HOME/.bashrc.backup $HOME/.bashrc
+               echo "removal complete"
+       else
+               echo "NDStation is not installed"
+       fi
+else
+exit 1
+fi
