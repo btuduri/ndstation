@@ -18,10 +18,6 @@ public class MainWindow: Gtk.Window
 		Stetic.Gui.Build (this, typeof(MainWindow));
 		//System.IO.Directory.Delete ("/tmp/ndstation-tmp");
 		System.IO.Directory.CreateDirectory ("/tmp/ndstation-tmp");
-		//System.Environment.SetEnvironmentVariable (ndstationblah, "test");
-		//StreamWriter swlock = new StreamWriter("/tmp/ndstation-tmp/lock");
-        //swlock.Write("1");
-        //swlock.Close();
         System.IO.File.Delete ("/tmp/ndstation-tmp/lock");
 	}
 	
