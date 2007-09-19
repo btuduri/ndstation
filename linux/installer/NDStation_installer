@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#NDStation Installer
+
+NDSTATION=$HOME/.ndstation/
+
+#check for .ndstation
+if [ -e $NDSTATION ]; then
+echo "NDStation is already installed"
+else
+
+echo "*******************************
+This script will install NDStation:
+1. It creates $NDSTATION
+2. Downloads the required files from the internet.
+3. Installs the files.
+4. Edits your .bashrc file(a backup is created first .bashrc.bckup), aliasing the needed commands for easy access.
+
+Make sure you understand the above before you continue.
+********************************"
+echo -n "Contine[y,N]:"
+read input
+ 
+    #check user input
+    if [ "$input" = "y" ]; then
+mkdir $NDSTATION{,/bin,/bin/data}
+cd $NDSTATION
+
+wget --user-agent=NDStation/Linux http://www.dpgdownloads.com/ndstation/linux/{ndstation,bin/ndstool,bin/efs}
+wget --user-agent=NDStation/Linux http://www.dpgdownloads.com/ndstation/updates/{7.bin,9.bin,icon.bmp,/data/border.bin}
+
+mv {7.bin,9.bin,efs,ndstool,icon.bmp} $NDSTATION/bin/ && mv border.bin $NDSTATION/bin/data/
+
+chmod +x $NDSTATION{/ndstation,/bin/efs,/bin/ndstool}
+
+echo "backing up .bashrc and .bash_profile to .bashrc.backup and .bash_profile.backup"
+cp $HOME/.bashrc $HOME/.bashrc.backup
+#adding aliases to .bashrc
+echo "alias ndstation='$HOME/.ndstation'" >> $HOME/.bashrc
+echo "alias efs='$HOME/.ndstation/bin/efs'" >> $HOME/.bashrc
+echo "alias ndstool='$HOME/.ndstation/bin/ndstool'" >> $HOME/.bashrc
+
+echo "Done installing NDStation. Launch NDStation with 'ndstation'"
+    else
+      exit 1
+    fi
+fi
+
