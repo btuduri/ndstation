@@ -28,6 +28,7 @@ if [ "$icon1" = "" ]; then
 	icon=~/.ndstation/bin/defaulticon.bmp
 fi
 
+cp $icon ~/.ndstation/bin/icon.bmp
 cd ~/.ndstation/bin
 cp "$inputfilename" ~/.ndstation/bin/data/game.gba
 ./ndstool -c file.nds -7 7.bin -9 9.bin -d data -g "NDST" -b icon.bmp "$title"

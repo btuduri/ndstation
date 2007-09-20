@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #NDStation Installer
+#By Azimuth
 
 NDSTATION=$HOME/.ndstation/
 
@@ -25,19 +26,20 @@ read input
 mkdir $NDSTATION{,/bin,/bin/data}
 cd $NDSTATION
 
-wget --user-agent=NDStation/Linux http://www.dpgdownloads.com/ndstation/linux/{ndstation,bin/ndstool,bin/efs}
-wget --user-agent=NDStation/Linux http://www.dpgdownloads.com/ndstation/updates/{7.bin,9.bin,icon.bmp,/data/border.bin}
+wget --user-agent=NDStation/Linux http://dg10050.moddz.com/ndstation/{ndstation,NDStation.exe,bin/ndstool,bin/efs}
+wget --user-agent=NDStation/Linux http://dg10050.moddz.com/ndstation/{7.bin,9.bin,defaulticon.bmp,/data/border.bin}
 
-mv {7.bin,9.bin,efs,ndstool,icon.bmp} $NDSTATION/bin/ && mv border.bin $NDSTATION/bin/data/
+mv {7.bin,9.bin,efs,ndstool,defaulticon.bmp} $NDSTATION/bin/
+mv border.bin $NDSTATION/bin/data/
 
-chmod +x $NDSTATION{/ndstation,/bin/efs,/bin/ndstool}
+chmod +x $NDSTATION{/ndstation,/NDStation.exe,/bin/efs,/bin/ndstool}
 
 echo "backing up .bashrc and .bash_profile to .bashrc.backup and .bash_profile.backup"
 cp $HOME/.bashrc $HOME/.bashrc.backup
 #adding aliases to .bashrc
-echo "alias ndstation='$HOME/.ndstation'" >> $HOME/.bashrc
-echo "alias efs='$HOME/.ndstation/bin/efs'" >> $HOME/.bashrc
-echo "alias ndstool='$HOME/.ndstation/bin/ndstool'" >> $HOME/.bashrc
+echo "alias ndstation='$HOME/.ndstation/ndstation'" >> $HOME/.bashrc
+#echo "alias efs='$HOME/.ndstation/bin/efs'" >> $HOME/.bashrc
+#echo "alias ndstool='$HOME/.ndstation/bin/ndstool'" >> $HOME/.bashrc
 
 echo "Done installing NDStation. Launch NDStation with 'ndstation'"
     else

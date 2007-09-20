@@ -1,12 +1,13 @@
-
 #!/usr/bin/env bash
 #NDStation uninstaller
+#By Azimuth
 NDSTATION=$HOME/.ndstation
 echo "****************
 NDStation Uninstaller
 
 Removes $HOME/.ndstation
 Reverts .bashrc from .bashrc.backup
+(YOU WILL LOSE ANY CHANGES MADE SINCE NDSTATION WAS INSTALLED)
 **************"
 echo -n "Continue[y,N]:"
 read input
