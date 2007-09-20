@@ -921,6 +921,13 @@ Private Sub cmdRun_Click()
     progressOriginal = lvwBatch.ListItems.Count
     
     If progressOriginal > 0 Then
+
+' <chuckstudios> WHILE THE AMOUNT OF ROWS IN THE LISTVIEW IS GREATER THAN 1
+' <chuckstudios> SET I EQUAL TO THE NUMBER OF ROWS
+' <chuckstudios> CALL THE PROCESSING ON THE ELEMENTS OF ROW I
+' <chuckstudios> REMOVE ROW I
+' <chuckstudios> SUBTRACT 1 FROM I
+
         For i = lvwBatch.ListItems.Count To 1 Step -1
             pbrProgress.Value = 100 - ((i / progressOriginal) * 100)
             Call processGame(lvwBatch.ListItems(i).Text, lvwBatch.ListItems(i).SubItems(1), lvwBatch.ListItems(i).SubItems(2), lvwBatch.ListItems(i).SubItems(3), lvwBatch.ListItems(i).SubItems(4), lvwBatch.ListItems(i).SubItems(5), lvwBatch.ListItems(i).SubItems(6), lvwBatch.ListItems(i).SubItems(7))
