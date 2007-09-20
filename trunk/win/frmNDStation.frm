@@ -917,21 +917,25 @@ Private Sub cmdClear_Click()
 End Sub
 
 Private Sub cmdRun_Click()
+
+    'These comments are dedicated to the memory of Dylan Garrett
+
     Dim i As Integer, progressOriginal As Integer
+    
+    'Remember how many items were in the ListView at the start
     progressOriginal = lvwBatch.ListItems.Count
     
     If progressOriginal > 0 Then
-
-' <chuckstudios> WHILE THE AMOUNT OF ROWS IN THE LISTVIEW IS GREATER THAN 1
-' <chuckstudios> SET I EQUAL TO THE NUMBER OF ROWS
-' <chuckstudios> CALL THE PROCESSING ON THE ELEMENTS OF ROW I
-' <chuckstudios> REMOVE ROW I
-' <chuckstudios> SUBTRACT 1 FROM I
-
+    
+        'Set i equal to the number of items in the ListView
         For i = lvwBatch.ListItems.Count To 1 Step -1
+            'Make the progress bar update... Current amount of items divided by original amount, all multiplied by 100
             pbrProgress.Value = 100 - ((i / progressOriginal) * 100)
+            'Process the elements of row i in the ListView
             Call processGame(lvwBatch.ListItems(i).Text, lvwBatch.ListItems(i).SubItems(1), lvwBatch.ListItems(i).SubItems(2), lvwBatch.ListItems(i).SubItems(3), lvwBatch.ListItems(i).SubItems(4), lvwBatch.ListItems(i).SubItems(5), lvwBatch.ListItems(i).SubItems(6), lvwBatch.ListItems(i).SubItems(7))
-            lvwBatch.ListItems.Remove i
+            'Delete row i
+            lvwBatch.ListItems.Remove (i)
+            'Subtract 1 from i and repeat until i = 1 at this step
         Next
         
         pbrProgress.Value = 100
