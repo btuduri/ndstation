@@ -19,6 +19,10 @@ Public Type SHFILEOPSTRUCT
     lpszProgressTitle As Long ' only used if FOF_SIMPLEPROGRESS, sets dialog title
 End Type
 
+Public Const SEEK_SET = 0
+Public Const SEEK_CUR = 1
+Public Const SEEK_END = 2
+
 Public Const FO_COPY = &H2 ' Copy File/Folder
 Public Const FO_DELETE = &H3 ' Delete File/Folder
 Public Const FO_MOVE = &H1 ' Move File/Folder
@@ -119,10 +123,18 @@ Public Function fread(handle As Integer, length As Long) As String
 ErrorTrap:
 End Function
 
-Public Sub fseek(handle As Integer, ByVal offset As Long, Optional whence As Long = 0)
+Public Sub fseek(handle As Integer, ByVal offset As Long, Optional whence As Integer = SEEK_SET)
     On Error Resume Next
-    offset = offset + whence
-    pointer(handle) = offset + 1
+    
+    Select Case whence
+        Case SEEK_SET
+            pointer(handle) = offset + 1
+        Case SEEK_CUR
+            pointer(handle) = pointer(handle) + offset
+        Case SEEK_END
+            pointer(handle) = filesize(filenames(handle)) + offset
+            If pointer(handle) > filesize(filenames(handle)) Then pointer(handle) = filesize(filenames(handle))
+    End Select
 End Sub
 
 Public Function ftell(handle As Integer) As Long
