@@ -709,7 +709,7 @@ Private Sub Form_Initialize()
 End Sub
 
 Private Sub cmdBorder_Click()
-    
+   
     Dim returnedValue As String
     returnedValue = OpenFileDialog("Bitmap images|*.bmp|PNG images|*.png|All files|*.*", "bmp", ReadIniValue(App.path & "\NDStation.ini", "Paths", "Border"), OFN_FILEMUSTEXIST)
     
