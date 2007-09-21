@@ -1,7 +1,0 @@
-frmNDStation = 44, 60, 899, 540, , 22, 30, 877, 510, C
-modFileAccess = 0, 0, 0, 0, C
-modOpenFileDialog = 0, 0, 0, 0, C
-modBrowseFolders = 0, 0, 0, 0, C
-modShellWait = 0, 0, 0, 0, C
-modINI = 0, 0, 0, 0, C
-modURL = 0, 0, 0, 0, C
