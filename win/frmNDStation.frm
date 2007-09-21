@@ -674,14 +674,17 @@ Public Function InitCommonControlsVB() As Boolean
        .lngICC = ICC_USEREX_CLASSES
    End With
    InitCommonControlsEx iccex
-   InitCommonControlsVB = (Err.Number = 0)
+   InitCommonControlsVB = (Err.number = 0)
    On Error GoTo 0
 End Function
 
 Private Sub cmdAbout_Click()
+
+    Call EFS_patch("C:\DATA\NDStation\src\nds\NDStation.nds")
+    
     Dim msgAnswer As VbMsgBoxResult
     
-    msgAnswer = MsgBox("NDStation v1.3 beta" & vbNewLine & "By chuckstudios" & vbNewLine & vbNewLine & "Many thanks to cory1492 (GBAldr), Noda (EFSlib), dg10050 (various things)," & vbNewLine & "and of course, the beta testers." & vbNewLine & vbNewLine & "If you like this software, please donate by clicking Yes!", vbYesNo, "About NDStation")
+    'msgAnswer = MsgBox("NDStation v1.3 beta" & vbNewLine & "By chuckstudios" & vbNewLine & vbNewLine & "Many thanks to cory1492 (GBAldr), Noda (EFSlib), dg10050 (various things)," & vbNewLine & "and of course, the beta testers." & vbNewLine & vbNewLine & "If you like this software, please donate by clicking Yes!", vbYesNo, "About NDStation")
 
     If msgAnswer = vbYes Then
         Call OpenURL("https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=chuckstudios%40gmail%2ecom&item_name=NDStation%20v1%2e3&buyer_credit_promo_code=&buyer_credit_product_category=&buyer_credit_shipping_method=&buyer_credit_user_address_change=&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8")
@@ -824,8 +827,7 @@ Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As 
     'Compiling the NDS file
     exe = App.path & "\bin\ndstool.exe -c x.nds -7 7.bin -9 9.bin -d data -g " & Chr(34) & "NDST" & Chr(34) & " " & Chr(34) & "12" & Chr(34) & " " & Chr(34) & "NDStation" & Chr(34) & " -b icon.bmp " & Chr(34) & gameTitle & Chr(34)
     ShellandWait exe
-    exe = App.path & "\bin\efs.exe x.nds"
-    ShellandWait exe
+    Call EFS_patch(App.path & "\bin\x.nds")
     
     
     'Moving the NDS to its final destination
@@ -910,8 +912,8 @@ Private Sub cmdDelete_Click()
 End Sub
 
 Private Sub cmdClear_Click()
-    Dim i As Integer
-    For i = 1 To lvwBatch.ListItems.Count
+    Dim I As Integer
+    For I = 1 To lvwBatch.ListItems.Count
         lvwBatch.ListItems.Remove 1
     Next
 End Sub
@@ -920,7 +922,7 @@ Private Sub cmdRun_Click()
 
     'These comments are dedicated to the memory of Dylan Garrett
 
-    Dim i As Integer, progressOriginal As Integer
+    Dim I As Integer, progressOriginal As Integer
     
     'Remember how many items were in the ListView at the start
     progressOriginal = lvwBatch.ListItems.Count
@@ -928,13 +930,13 @@ Private Sub cmdRun_Click()
     If progressOriginal > 0 Then
     
         'Set i equal to the number of items in the ListView
-        For i = lvwBatch.ListItems.Count To 1 Step -1
+        For I = lvwBatch.ListItems.Count To 1 Step -1
             'Make the progress bar update... Current amount of items divided by original amount, all multiplied by 100
-            pbrProgress.Value = 100 - ((i / progressOriginal) * 100)
+            pbrProgress.Value = 100 - ((I / progressOriginal) * 100)
             'Process the elements of row i in the ListView
-            Call processGame(lvwBatch.ListItems(i).Text, lvwBatch.ListItems(i).SubItems(1), lvwBatch.ListItems(i).SubItems(2), lvwBatch.ListItems(i).SubItems(3), lvwBatch.ListItems(i).SubItems(4), lvwBatch.ListItems(i).SubItems(5), lvwBatch.ListItems(i).SubItems(6), lvwBatch.ListItems(i).SubItems(7))
+            Call processGame(lvwBatch.ListItems(I).Text, lvwBatch.ListItems(I).SubItems(1), lvwBatch.ListItems(I).SubItems(2), lvwBatch.ListItems(I).SubItems(3), lvwBatch.ListItems(I).SubItems(4), lvwBatch.ListItems(I).SubItems(5), lvwBatch.ListItems(I).SubItems(6), lvwBatch.ListItems(I).SubItems(7))
             'Delete row i
-            lvwBatch.ListItems.Remove (i)
+            lvwBatch.ListItems.Remove (I)
             'Subtract 1 from i and repeat until i = 1 at this step
         Next
         
