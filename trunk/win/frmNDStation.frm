@@ -641,18 +641,29 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-' NDStation GUI for Windows
-' by chuckstudios
-' v1.3
+' NDStation GUI for Windows v1.3 - package GBA files into NDS files with NDStation
+' Copyright (C) 2007 Chaz Schlarp
+'
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+'
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+'
+' You should have received a copy of the GNU General Public License
+' along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-' This code is public domain.
+
 
 ' Uses the following component to have controls that are compatible with XP styles:
 ' Microsoft Windows Common Controls 5.0 (SP2)
 
 ' I use PE Explorer to add in a style manifest after compiling.
 
-Dim customize As Boolean
 Option Explicit
 
 Private Type tagInitCommonControlsEx
@@ -664,27 +675,11 @@ Private Declare Function InitCommonControlsEx Lib "comctl32.dll" _
    (iccex As tagInitCommonControlsEx) As Boolean
 Private Const ICC_USEREX_CLASSES = &H200
 
-
-Public Function InitCommonControlsVB() As Boolean
-   On Error Resume Next
-   Dim iccex As tagInitCommonControlsEx
-   ' Ensure CC available:
-   With iccex
-       .lngSize = LenB(iccex)
-       .lngICC = ICC_USEREX_CLASSES
-   End With
-   InitCommonControlsEx iccex
-   InitCommonControlsVB = (Err.number = 0)
-   On Error GoTo 0
-End Function
-
 Private Sub cmdAbout_Click()
 
-    Call EFS_patch("C:\DATA\NDStation\src\nds\NDStation.nds")
-    
     Dim msgAnswer As VbMsgBoxResult
     
-    'msgAnswer = MsgBox("NDStation v1.3 beta" & vbNewLine & "By chuckstudios" & vbNewLine & vbNewLine & "Many thanks to cory1492 (GBAldr), Noda (EFSlib), dg10050 (various things)," & vbNewLine & "and of course, the beta testers." & vbNewLine & vbNewLine & "If you like this software, please donate by clicking Yes!", vbYesNo, "About NDStation")
+    msgAnswer = MsgBox("NDStation v1.3 beta" & vbNewLine & "By chuckstudios" & vbNewLine & vbNewLine & "Many thanks to cory1492 (GBAldr), Noda (EFSlib), dg10050 (various things)," & vbNewLine & "and of course, the beta testers." & vbNewLine & vbNewLine & "If you like this software, please donate by clicking Yes!", vbYesNo, "About NDStation")
 
     If msgAnswer = vbYes Then
         Call OpenURL("https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=chuckstudios%40gmail%2ecom&item_name=NDStation%20v1%2e3&buyer_credit_promo_code=&buyer_credit_product_category=&buyer_credit_shipping_method=&buyer_credit_user_address_change=&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8")
@@ -705,7 +700,15 @@ Private Sub cmdSplash_Click()
 End Sub
 
 Private Sub Form_Initialize()
-    InitCommonControlsVB
+   On Error Resume Next
+   Dim iccex As tagInitCommonControlsEx
+   ' Ensure CC available:
+   With iccex
+       .lngSize = LenB(iccex)
+       .lngICC = ICC_USEREX_CLASSES
+   End With
+   InitCommonControlsEx iccex
+   On Error GoTo 0
 End Sub
 
 Private Sub cmdBorder_Click()
