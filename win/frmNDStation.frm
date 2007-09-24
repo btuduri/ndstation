@@ -665,6 +665,8 @@ Attribute VB_Exposed = False
 
 ' I use PE Explorer to add in a style manifest after compiling.
 
+
+
 Option Explicit
 
 Private Type tagInitCommonControlsEx
@@ -754,7 +756,6 @@ Private Sub cmdGBA_Click()
         If filesize(returnedValue) > 16777216 Then
             MsgBox "This ROM is larger than 16MB. PSRAM will be disabled.", , "NDStation"
             chkPSRAM.Enabled = False
-            chkPSRAM.Value = 2
             chkPSRAM.Value = 0
         Else
             chkPSRAM.Enabled = True
@@ -764,54 +765,75 @@ Private Sub cmdGBA_Click()
     
 End Sub
 
+Private Sub clearTemp()
+    Call unlink(binDirectory & "\x.nds")
+    Call unlink(binDirectory & "\border.bmp")
+    Call unlink(binDirectory & "\border.img.bin")
+    Call unlink(binDirectory & "\splash.bmp")
+    Call unlink(binDirectory & "\splash.img.bin")
+    Call unlink(binDirectory & "\icon.bmp")
+    Call unlink(binDirectory & "\data\mode.txt")
+    Call unlink(binDirectory & "\data\game.gba")
+    Call unlink(binDirectory & "\data\game.gz")
+    Call unlink(binDirectory & "\data\game.gba.gz")
+    Call unlink(binDirectory & "\data\game")
+    Call unlink(binDirectory & "\data\border.lz7")
+    Call unlink(binDirectory & "\data\splash.lz7")
+End Sub
+
 Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As String, _
                     usePSRAM As Boolean, useCompression As Boolean, _
                     iconFile As String, borderFile As String, splashFile As String)
                     
-    Dim output As String, exe As String
+    Dim output As String
+    Dim binDirectory As String
+    
+    
+    'Directory where everything happens
+    binDirectory = App.path & "\bin"
     
     
     'Output file
     output = outputFolder & basename(gbaFile, ".gba") & ".nds"
     
     
+    'Handle the scenario of the output file already existing
+    If file_exists(output) Then Call unlink(output)
+    
+    
     'Changing working directory
-    ChDrive Left(App.path, 2)
-    ChDir App.path & "\bin\"
+    ChDrive Left(binDirectory, 2)
+    ChDir binDirectory
     
     
     'GBA handling
-    Call copy(gbaFile, App.path & "\bin\data\game")
+    Call copy(gbaFile, binDirectory & "\data\game.gba")
     If useCompression Then
-        exe = App.path & "\bin\gzip.exe --best data\game"
-        ShellandWait exe
-    Else
-        Call copy(App.path & "\bin\data\game", App.path & "\bin\data\game.gba")
-        Call unlink(App.path & "\bin\data\game")
+        Call ShellandWait(binDirectory & "\gzip.exe --best data\game.gba")
+        Call rename(binDirectory & "\data\game.gba.gz", binDirectory & "\data\game.gz")
+        Call unlink(binDirectory & "\data\game.gba")
     End If
     
     
     'Border handling
-    Call copy(borderFile, App.path & "\bin\border.bmp")
-    exe = App.path & "\bin\grit.exe border.bmp -gT! -gzl -ftbin -fh! -gB16"
-    ShellandWait exe
-    Call copy(App.path & "\bin\border.img.bin", App.path & "\bin\data\border.lz7")
+    Call copy(borderFile, binDirectory & "\border.bmp")
+    Call ShellandWait(binDirectory & "\grit.exe border.bmp -gB16 -gT! -gzl -fh! -ftbin")
+    Call rename(binDirectory & "\border.img.bin", binDirectory & "\data\border.lz7")
     
     
     'Splash handling
-    Call copy(splashFile, App.path & "\bin\splash.bmp")
-    exe = App.path & "\bin\grit.exe splash.bmp -gT! -gzl -ftbin -fh! -gB16"
-    ShellandWait exe
-    Call copy(App.path & "\bin\splash.img.bin", App.path & "\bin\data\splash.lz7")
+    Call copy(splashFile, binDirectory & "\splash.bmp")
+    Call ShellandWait(binDirectory & "\grit.exe splash.bmp -gB16 -gT! -gzl -fh! -ftbin")
+    Call rename(binDirectory & "\splash.img.bin", binDirectory & "\data\splash.lz7")
     
     
     'Icon handling
-    Call copy(iconFile, App.path & "\bin\icon.bmp")
+    Call copy(iconFile, binDirectory & "\icon.bmp")
     
     
     'Modefile handling
     Dim modefile As Integer
-    modefile = fopen(App.path & "\bin\data\mode.txt")
+    modefile = fopen(binDirectory & "\data\mode.txt")
     If usePSRAM Then
         If useCompression Then
             Call fwrite(modefile, "PC")
@@ -829,29 +851,17 @@ Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As 
     
     
     'Compiling the NDS file
-    exe = App.path & "\bin\ndstool.exe -c x.nds -7 7.bin -9 9.bin -d data -g " & Chr(34) & "NDST" & Chr(34) & " " & Chr(34) & "12" & Chr(34) & " " & Chr(34) & "NDStation" & Chr(34) & " -b icon.bmp " & Chr(34) & gameTitle & Chr(34)
-    ShellandWait exe
-    Call EFS_patch(App.path & "\bin\x.nds")
+    Call ShellandWait(binDirectory & "\ndstool.exe -c x.nds -7 7.bin -9 9.bin -d data -g ""NDST"" ""13"" ""NDStation"" -b icon.bmp """ & gameTitle & """")
+    Call EFS_patch(binDirectory & "\x.nds")
     
     
     'Moving the NDS to its final destination
-    Call copy(App.path & "\bin\x.nds", output)
+    Call rename(binDirectory & "\x.nds", output)
     
     
     'Deleting the temporary files
-    Call unlink(App.path & "\bin\x.nds")
-    Call unlink(App.path & "\bin\border.bmp")
-    Call unlink(App.path & "\bin\border.img.bin")
-    Call unlink(App.path & "\bin\splash.bmp")
-    Call unlink(App.path & "\bin\splash.img.bin")
-    Call unlink(App.path & "\bin\icon.bmp")
-    Call unlink(App.path & "\bin\data\mode.txt")
-    Call unlink(App.path & "\bin\data\game.gba")
-    Call unlink(App.path & "\bin\data\game.gz")
-    Call unlink(App.path & "\bin\data\game")
-    Call unlink(App.path & "\bin\data\border.lz7")
-    Call unlink(App.path & "\bin\data\splash.lz7")
-    
+    Call clearTemp
+   
     
 End Sub
 
@@ -864,6 +874,8 @@ Private Sub Form_Load()
     lvwBatch.ColumnHeaders.Add 6, , "Icon File", 0
     lvwBatch.ColumnHeaders.Add 7, , "Border File", 0
     lvwBatch.ColumnHeaders.Add 8, , "Splash File", 0
+    
+    Call clearTemp
 End Sub
 
 
