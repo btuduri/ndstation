@@ -56,7 +56,62 @@ Begin VB.Form frmNDStation
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
-      NumItems        =   0
+      NumItems        =   8
+      BeginProperty ColumnHeader(1) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "GBA File"
+         Object.Width           =   11906
+      EndProperty
+      BeginProperty ColumnHeader(2) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         SubItemIndex    =   1
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "Output Folder"
+         Object.Width           =   0
+      EndProperty
+      BeginProperty ColumnHeader(3) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         SubItemIndex    =   2
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "Game Title"
+         Object.Width           =   0
+      EndProperty
+      BeginProperty ColumnHeader(4) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         SubItemIndex    =   3
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "Use PSRAM"
+         Object.Width           =   0
+      EndProperty
+      BeginProperty ColumnHeader(5) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         SubItemIndex    =   4
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "Use Compression"
+         Object.Width           =   0
+      EndProperty
+      BeginProperty ColumnHeader(6) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         SubItemIndex    =   5
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "Icon File"
+         Object.Width           =   0
+      EndProperty
+      BeginProperty ColumnHeader(7) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         SubItemIndex    =   6
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "Border File"
+         Object.Width           =   0
+      EndProperty
+      BeginProperty ColumnHeader(8) {0713E8C7-850A-101B-AFC0-4210102A8DA7} 
+         SubItemIndex    =   7
+         Key             =   ""
+         Object.Tag             =   ""
+         Text            =   "Splash File"
+         Object.Width           =   0
+      EndProperty
    End
    Begin VB.CommandButton cmdBorder 
       Caption         =   "Browse..."
@@ -274,6 +329,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   285
          Left            =   1320
+         OLEDropMode     =   1  'Manual
          TabIndex        =   1
          Top             =   240
          Width           =   4215
@@ -455,6 +511,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   270
          Left            =   1320
+         OLEDropMode     =   1  'Manual
          TabIndex        =   14
          Top             =   1575
          Width           =   4215
@@ -471,6 +528,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   285
          Left            =   1320
+         OLEDropMode     =   1  'Manual
          TabIndex        =   10
          Top             =   600
          Width           =   4215
@@ -487,6 +545,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   285
          Left            =   1320
+         OLEDropMode     =   1  'Manual
          TabIndex        =   12
          Top             =   1080
          Width           =   4215
@@ -678,8 +737,15 @@ Private Declare Function InitCommonControlsEx Lib "comctl32.dll" _
    (iccex As tagInitCommonControlsEx) As Boolean
 Private Const ICC_USEREX_CLASSES = &H200
 
-Private Sub cmdAbout_Click()
+Dim binDirectory As String
 
+Private Function isFileType(filename As String, extension As String) As Boolean
+    On Error Resume Next
+    isFileType = False
+    If LCase(Right(filename, Len(extension) + 1)) = "." & extension Then isFileType = True
+End Function
+
+Private Sub cmdAbout_Click()
     Dim msgAnswer As VbMsgBoxResult
     
     msgAnswer = MsgBox("NDStation v1.3 beta" & vbNewLine & "By chuckstudios" & vbNewLine & vbNewLine & "Many thanks to cory1492 (GBAldr), Noda (EFSlib), dg10050 (various things)," & vbNewLine & "and of course, the beta testers." & vbNewLine & vbNewLine & "If you like this software, please donate by clicking Yes!", vbYesNo, "About NDStation")
@@ -693,7 +759,7 @@ End Sub
 Private Sub cmdSplash_Click()
 
     Dim returnedValue As String
-    returnedValue = OpenFileDialog("Bitmap images|*.bmp|PNG images|*.png|All files|*.*", "bmp", ReadIniValue(App.path & "\NDStation.ini", "Paths", "Splash"), OFN_FILEMUSTEXIST)
+    returnedValue = OpenFileDialog("Common image types|*.bmp;*.gif;*.jpg;*.png|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Splash"), OFN_FILEMUSTEXIST)
     
     If file_exists(returnedValue) Then
         txtSplash.Text = returnedValue
@@ -717,7 +783,7 @@ End Sub
 Private Sub cmdBorder_Click()
    
     Dim returnedValue As String
-    returnedValue = OpenFileDialog("Bitmap images|*.bmp|PNG images|*.png|All files|*.*", "bmp", ReadIniValue(App.path & "\NDStation.ini", "Paths", "Border"), OFN_FILEMUSTEXIST)
+    returnedValue = OpenFileDialog("Common image types|*.bmp;*.gif;*.jpg;*.png|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Border"), OFN_FILEMUSTEXIST)
     
     If file_exists(returnedValue) Then
         txtBorder.Text = returnedValue
@@ -733,7 +799,7 @@ End Sub
 Private Sub cmdIcon_Click()
 
     Dim returnedValue As String
-    returnedValue = OpenFileDialog("Bitmap images|*.bmp|All files|*.*", "bmp", ReadIniValue(App.path & "\NDStation.ini", "Paths", "Icon"), OFN_FILEMUSTEXIST)
+    returnedValue = OpenFileDialog("Bitmap images|*.bmp|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Icon"), OFN_FILEMUSTEXIST)
     
     If file_exists(returnedValue) Then
         txtIcon.Text = returnedValue
@@ -745,8 +811,7 @@ End Sub
 Private Sub cmdGBA_Click()
 
     Dim returnedValue As String
-    returnedValue = OpenFileDialog("GBA ROMs|*.gba|All files|*.*", "gba", ReadIniValue(App.path & "\NDStation.ini", "Paths", "GBA"), OFN_FILEMUSTEXIST)
-    
+    returnedValue = OpenFileDialog("GBA ROMs|*.gba;*.bin|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "GBA"), OFN_FILEMUSTEXIST)
     If file_exists(returnedValue) Then
         WriteIniValue App.path & "\NDStation.ini", "Paths", "GBA", Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
         txtGBA.Text = returnedValue
@@ -786,11 +851,6 @@ Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As 
                     iconFile As String, borderFile As String, splashFile As String)
                     
     Dim output As String
-    Dim binDirectory As String
-    
-    
-    'Directory where everything happens
-    binDirectory = App.path & "\bin"
     
     
     'Output file
@@ -866,15 +926,7 @@ Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As 
 End Sub
 
 Private Sub Form_Load()
-    lvwBatch.ColumnHeaders.Add 1, , "GBA File", 6750
-    lvwBatch.ColumnHeaders.Add 2, , "Output Folder", 0
-    lvwBatch.ColumnHeaders.Add 3, , "Game Title", 0
-    lvwBatch.ColumnHeaders.Add 4, , "Use PSRAM", 0
-    lvwBatch.ColumnHeaders.Add 5, , "Use Compression", 0
-    lvwBatch.ColumnHeaders.Add 6, , "Icon File", 0
-    lvwBatch.ColumnHeaders.Add 7, , "Border File", 0
-    lvwBatch.ColumnHeaders.Add 8, , "Splash File", 0
-    
+    binDirectory = App.path & "\bin"
     Call clearTemp
 End Sub
 
@@ -960,4 +1012,31 @@ Private Sub cmdRun_Click()
         MsgBox "Conversion complete!", , "NDStation"
         pbrProgress.Value = 0
     End If
+End Sub
+
+Private Sub txtGBA_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(Data.Files(1), "gba") Or isFileType(Data.Files(1), "bin") Then
+        txtGBA.Text = Data.Files(1)
+        txtOutput.Text = Left(Data.Files(1), Len(Data.Files(1)) - Len(basename(Data.Files(1))))
+        If filesize(Data.Files(1)) > 16777216 Then
+            MsgBox "This ROM is larger than 16MB. PSRAM will be disabled.", , "NDStation"
+            chkPSRAM.Enabled = False
+            chkPSRAM.Value = 0
+        Else
+            chkPSRAM.Enabled = True
+            chkPSRAM.Value = 1
+        End If
+    End If
+End Sub
+
+Private Sub txtIcon_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(Data.Files(1), "bmp") Then txtIcon.Text = Data.Files(1)
+End Sub
+
+Private Sub txtBorder_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(Data.Files(1), "bmp") Or isFileType(Data.Files(1), "gif") Or isFileType(Data.Files(1), "jpg") Or isFileType(Data.Files(1), "png") Then txtBorder.Text = Data.Files(1)
+End Sub
+
+Private Sub txtSplash_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(Data.Files(1), "bmp") Or isFileType(Data.Files(1), "gif") Or isFileType(Data.Files(1), "jpg") Or isFileType(Data.Files(1), "png") Then txtSplash.Text = Data.Files(1)
 End Sub
