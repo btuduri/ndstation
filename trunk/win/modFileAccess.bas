@@ -19,40 +19,16 @@ Attribute VB_Name = "modFileAccess"
 
 
 ' This module provides some file access functions
-' (yes, it is messy and there are a lot of bugs)
+' (yes, it is messy and there are bugs)
 
 Option Explicit
 
 Dim pointer(255) As Long
 Dim filenames(255) As String
 
-Public Type SHFILEOPSTRUCT
-    hWnd As Long
-    wFunc As Long
-    pFrom As String
-    pTo As String
-    fFlags As Integer
-    fAnyOperationsAborted As Long
-    hNameMappings As Long
-    lpszProgressTitle As Long ' only used if FOF_SIMPLEPROGRESS, sets dialog title
-End Type
-
 Public Const SEEK_SET = 0
 Public Const SEEK_CUR = 1
 Public Const SEEK_END = 2
-
-Public Const FO_COPY = &H2 ' Copy File/Folder
-Public Const FO_DELETE = &H3 ' Delete File/Folder
-Public Const FO_MOVE = &H1 ' Move File/Folder
-Public Const FO_RENAME = &H4 ' Rename File/Folder
-Public Const FOF_ALLOWUNDO = &H40 ' Allow to undo rename, delete ie sends to recycle bin
-Public Const FOF_FILESONLY = &H80  ' Only allow files
-Public Const FOF_NOCONFIRMATION = &H10  ' No File Delete or Overwrite Confirmation Dialog
-Public Const FOF_SILENT = &H4 ' No copy/move dialog
-Public Const FOF_SIMPLEPROGRESS = &H100 ' Does not display file names
-
-Public Declare Function SHFileOperation Lib "shell32.dll" Alias "SHFileOperationA" _
-                        (lpFileOp As SHFILEOPSTRUCT) As Long
                         
 Public Function basename(path As String, Optional suffix As String) As String
     Dim slashloc(1) As Integer, oldslashloc(2) As Integer
@@ -82,28 +58,22 @@ Public Function copy(source As String, dest As String) As Boolean
     Dim fso
     Set fso = CreateObject("Scripting.FileSystemObject")
     fso.CopyFile source, dest
-    If file_exists(dest) Then
+    If fso.FileExists(dest) Then
         copy = True
     Else
         copy = False
     End If
-    
 End Function
 
-Public Function fclose(handle As Integer) As Boolean
-    On Error GoTo ErrorTrap
+Public Function fclose(handle As Integer)
+    On Error Resume Next
     Close handle
-    fclose = True
-    GoTo ExitFunction
-ErrorTrap:
-    fclose = False
-ExitFunction:
 End Function
 
 Public Function file_exists(filename As String) As Boolean
-    Dim fs
-    Set fs = CreateObject("Scripting.FileSystemObject")
-    file_exists = fs.FileExists(filename)
+    Dim fso
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    file_exists = fso.FileExists(filename)
 End Function
 
 Public Function file_get_contents(filename As String, Optional offset As Long = 0, Optional maxlen As Long = -1) As String
@@ -170,21 +140,19 @@ Public Function fwrite(handle As Integer, ByVal data As String, Optional length 
 ErrorTrap:
 End Function
 
-Public Function rewind(handle As Integer)
-    On Error GoTo ErrorTrap
-    pointer(handle) = 1
-    GoTo ExitFunction
-ErrorTrap:
-    rewind = False
-ExitFunction:
+Public Function rename(source As String, dest As String)
+    On Error Resume Next
+    Dim fso As FileSystemObject
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    fso.MoveFile source, dest
 End Function
 
-Public Function unlink(filename As String) As Boolean
+Public Function rewind(handle As Integer)
+    On Error Resume Next
+    pointer(handle) = 1
+End Function
+
+Public Function unlink(filename As String)
     On Error Resume Next
     Call Kill(filename)
-    If file_exists(filename) Then
-        unlink = False
-    Else
-        unlink = True
-    End If
 End Function
