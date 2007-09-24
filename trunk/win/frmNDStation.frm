@@ -14,23 +14,6 @@ Begin VB.Form frmNDStation
    ScaleHeight     =   8775
    ScaleWidth      =   7335
    StartUpPosition =   3  'Windows Default
-   Begin VB.CommandButton cmdAbout 
-      Caption         =   "About"
-      BeginProperty Font 
-         Name            =   "Arial"
-         Size            =   8.25
-         Charset         =   0
-         Weight          =   400
-         Underline       =   0   'False
-         Italic          =   0   'False
-         Strikethrough   =   0   'False
-      EndProperty
-      Height          =   375
-      Left            =   5880
-      TabIndex        =   21
-      Top             =   7920
-      Width           =   1215
-   End
    Begin ComctlLib.ListView lvwBatch 
       Height          =   1935
       Left            =   120
@@ -45,7 +28,6 @@ Begin VB.Form frmNDStation
       _Version        =   327682
       ForeColor       =   -2147483640
       BackColor       =   -2147483643
-      BorderStyle     =   1
       Appearance      =   1
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
          Name            =   "Arial"
@@ -112,6 +94,23 @@ Begin VB.Form frmNDStation
          Text            =   "Splash File"
          Object.Width           =   0
       EndProperty
+   End
+   Begin VB.CommandButton cmdAbout 
+      Caption         =   "About"
+      BeginProperty Font 
+         Name            =   "Arial"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   375
+      Left            =   5880
+      TabIndex        =   21
+      Top             =   7920
+      Width           =   1215
    End
    Begin VB.CommandButton cmdBorder 
       Caption         =   "Browse..."
@@ -313,6 +312,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   285
          Left            =   1320
+         OLEDropMode     =   1  'Manual
          TabIndex        =   3
          Top             =   720
          Width           =   4215
@@ -328,6 +328,7 @@ Begin VB.Form frmNDStation
             Strikethrough   =   0   'False
          EndProperty
          Height          =   285
+         IMEMode         =   3  'DISABLE
          Left            =   1320
          OLEDropMode     =   1  'Manual
          TabIndex        =   1
@@ -1018,6 +1019,7 @@ Private Sub txtGBA_OLEDragDrop(Data As DataObject, Effect As Long, Button As Int
     If isFileType(Data.Files(1), "gba") Or isFileType(Data.Files(1), "bin") Then
         txtGBA.Text = Data.Files(1)
         txtOutput.Text = Left(Data.Files(1), Len(Data.Files(1)) - Len(basename(Data.Files(1))))
+        txtTitle(0).Text = basename(Data.Files(1), ".gba")
         If filesize(Data.Files(1)) > 16777216 Then
             MsgBox "This ROM is larger than 16MB. PSRAM will be disabled.", , "NDStation"
             chkPSRAM.Enabled = False
@@ -1035,6 +1037,10 @@ End Sub
 
 Private Sub txtBorder_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
     If isFileType(Data.Files(1), "bmp") Or isFileType(Data.Files(1), "gif") Or isFileType(Data.Files(1), "jpg") Or isFileType(Data.Files(1), "png") Then txtBorder.Text = Data.Files(1)
+End Sub
+
+Private Sub txtOutput_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If (GetAttr(Data.Files(1)) And vbDirectory) = vbDirectory Then txtOutput.Text = Data.Files(1) & "\"
 End Sub
 
 Private Sub txtSplash_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
