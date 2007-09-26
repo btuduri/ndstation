@@ -723,7 +723,8 @@ Attribute VB_Exposed = False
 ' Uses the following component to have controls that are compatible with XP styles:
 ' Microsoft Windows Common Controls 5.0 (SP2)
 
-' I use PE Explorer to add in a style manifest after compiling.
+' I use PE Explorer to add in a style manifest after compiling,
+' and UPX to decrease executable size.
 
 
 
@@ -1015,12 +1016,12 @@ Private Sub cmdRun_Click()
     End If
 End Sub
 
-Private Sub txtGBA_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(Data.Files(1), "gba") Or isFileType(Data.Files(1), "bin") Then
-        txtGBA.Text = Data.Files(1)
-        txtOutput.Text = Left(Data.Files(1), Len(Data.Files(1)) - Len(basename(Data.Files(1))))
-        txtTitle(0).Text = basename(Data.Files(1), ".gba")
-        If filesize(Data.Files(1)) > 16777216 Then
+Private Sub txtGBA_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "gba") Or isFileType(data.Files(1), "bin") Then
+        txtGBA.Text = data.Files(1)
+        txtOutput.Text = Left(data.Files(1), Len(data.Files(1)) - Len(basename(data.Files(1))))
+        txtTitle(0).Text = basename(data.Files(1), ".gba")
+        If filesize(data.Files(1)) > 16777216 Then
             MsgBox "This ROM is larger than 16MB. PSRAM will be disabled.", , "NDStation"
             chkPSRAM.Enabled = False
             chkPSRAM.Value = 0
@@ -1031,18 +1032,18 @@ Private Sub txtGBA_OLEDragDrop(Data As DataObject, Effect As Long, Button As Int
     End If
 End Sub
 
-Private Sub txtIcon_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(Data.Files(1), "bmp") Then txtIcon.Text = Data.Files(1)
+Private Sub txtIcon_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "bmp") Then txtIcon.Text = data.Files(1)
 End Sub
 
-Private Sub txtBorder_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(Data.Files(1), "bmp") Or isFileType(Data.Files(1), "gif") Or isFileType(Data.Files(1), "jpg") Or isFileType(Data.Files(1), "png") Then txtBorder.Text = Data.Files(1)
+Private Sub txtBorder_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "bmp") Or isFileType(data.Files(1), "gif") Or isFileType(data.Files(1), "jpg") Or isFileType(data.Files(1), "png") Then txtBorder.Text = data.Files(1)
 End Sub
 
-Private Sub txtOutput_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If (GetAttr(Data.Files(1)) And vbDirectory) = vbDirectory Then txtOutput.Text = Data.Files(1) & "\"
+Private Sub txtOutput_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If (GetAttr(data.Files(1)) And vbDirectory) = vbDirectory Then txtOutput.Text = data.Files(1) & "\"
 End Sub
 
-Private Sub txtSplash_OLEDragDrop(Data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(Data.Files(1), "bmp") Or isFileType(Data.Files(1), "gif") Or isFileType(Data.Files(1), "jpg") Or isFileType(Data.Files(1), "png") Then txtSplash.Text = Data.Files(1)
+Private Sub txtSplash_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "bmp") Or isFileType(data.Files(1), "gif") Or isFileType(data.Files(1), "jpg") Or isFileType(data.Files(1), "png") Then txtSplash.Text = data.Files(1)
 End Sub
