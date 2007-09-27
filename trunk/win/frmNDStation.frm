@@ -726,6 +726,9 @@ Attribute VB_Exposed = False
 ' I use PE Explorer to add in a style manifest after compiling,
 ' and UPX to decrease executable size.
 
+'grit = 101
+'gzip = 102
+'ndstool = 103
 
 
 Option Explicit
@@ -833,6 +836,7 @@ Private Sub cmdGBA_Click()
 End Sub
 
 Private Sub clearTemp()
+    On Error Resume Next
     Call unlink(binDirectory & "\x.nds")
     Call unlink(binDirectory & "\border.bmp")
     Call unlink(binDirectory & "\border.img.bin")
@@ -846,6 +850,39 @@ Private Sub clearTemp()
     Call unlink(binDirectory & "\data\game")
     Call unlink(binDirectory & "\data\border.lz7")
     Call unlink(binDirectory & "\data\splash.lz7")
+
+End Sub
+
+Private Sub clearEXE()
+    On Error Resume Next
+    Call unlink(binDirectory & "\grit.exe")
+    Call unlink(binDirectory & "\gzip.exe")
+    Call unlink(binDirectory & "\ndstool.exe")
+    Call unlink(binDirectory & "\FreeImage.dll")
+    Call unlink(binDirectory & "\7.bin")
+    Call unlink(binDirectory & "\9.bin")
+    Call unlink(binDirectory & "\gfx\splash.bmp")
+    Call unlink(binDirectory & "\gfx\border.bmp")
+    Call unlink(binDirectory & "\gfx\icon.bmp")
+    Call RmDir(binDirectory & "\data")
+    Call RmDir(binDirectory & "\gfx")
+    Call RmDir(binDirectory)
+End Sub
+
+Private Sub unpackEXE()
+    On Error Resume Next
+    Call MkDir(binDirectory)
+    Call MkDir(binDirectory & "\data")
+    Call MkDir(binDirectory & "\gfx")
+    Call extractRes("exe", "grit", binDirectory & "\grit.exe")
+    Call extractRes("exe", "gzip", binDirectory & "\gzip.exe")
+    Call extractRes("exe", "ndstool", binDirectory & "\ndstool.exe")
+    Call extractRes("exe", "freeimage", binDirectory & "\freeimage.dll")
+    Call extractRes("bmp", "border", binDirectory & "\gfx\border.bmp")
+    Call extractRes("bmp", "icon", binDirectory & "\gfx\icon.bmp")
+    Call extractRes("bmp", "splash", binDirectory & "\gfx\splash.bmp")
+    Call extractRes("binary", "arm7", binDirectory & "\7.bin")
+    Call extractRes("binary", "arm9", binDirectory & "\9.bin")
 End Sub
 
 Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As String, _
@@ -928,8 +965,10 @@ Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As 
 End Sub
 
 Private Sub Form_Load()
-    binDirectory = App.path & "\bin"
+    binDirectory = Environ("temp") & "\NDStation"
     Call clearTemp
+    Call clearEXE
+    Call unpackEXE
 End Sub
 
 
@@ -958,19 +997,19 @@ Private Sub cmdAdd_Click()
         If file_exists(txtIcon.Text) Then
             lvwBatch.ListItems(rowNumber).SubItems(5) = txtIcon.Text
         Else
-            lvwBatch.ListItems(rowNumber).SubItems(5) = App.path & "\gfx\icon.bmp"
+            lvwBatch.ListItems(rowNumber).SubItems(5) = binDirectory & "\gfx\icon.bmp"
         End If
         
         If file_exists(txtBorder.Text) Then
             lvwBatch.ListItems(rowNumber).SubItems(6) = txtBorder.Text
         Else
-            lvwBatch.ListItems(rowNumber).SubItems(6) = App.path & "\gfx\border.bmp"
+            lvwBatch.ListItems(rowNumber).SubItems(6) = binDirectory & "\gfx\border.bmp"
         End If
     
         If file_exists(txtSplash.Text) Then
             lvwBatch.ListItems(rowNumber).SubItems(7) = txtSplash.Text
         Else
-            lvwBatch.ListItems(rowNumber).SubItems(7) = App.path & "\gfx\splash.bmp"
+            lvwBatch.ListItems(rowNumber).SubItems(7) = binDirectory & "\gfx\splash.bmp"
         End If
     End If
     
@@ -1014,6 +1053,11 @@ Private Sub cmdRun_Click()
         MsgBox "Conversion complete!", , "NDStation"
         pbrProgress.Value = 0
     End If
+End Sub
+
+Private Sub Form_Terminate()
+    Call clearTemp
+    Call clearEXE
 End Sub
 
 Private Sub txtGBA_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
