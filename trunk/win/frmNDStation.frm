@@ -726,10 +726,6 @@ Attribute VB_Exposed = False
 ' I use PE Explorer to add in a style manifest after compiling,
 ' and UPX to decrease executable size.
 
-'grit = 101
-'gzip = 102
-'ndstool = 103
-
 
 Option Explicit
 
@@ -744,39 +740,11 @@ Private Const ICC_USEREX_CLASSES = &H200
 
 Dim binDirectory As String
 
-Private Function isFileType(filename As String, extension As String) As Boolean
-    On Error Resume Next
-    isFileType = False
-    If LCase(Right(filename, Len(extension) + 1)) = "." & extension Then isFileType = True
-End Function
 
-Private Sub cmdAbout_Click()
-    Dim msgAnswer As VbMsgBoxResult
-    
-    msgAnswer = MsgBox("NDStation v1.3 beta" & vbNewLine & "By chuckstudios" & vbNewLine & vbNewLine & "Many thanks to cory1492 (GBAldr), Noda (EFSlib), dg10050 (various things)," & vbNewLine & "and of course, the beta testers." & vbNewLine & vbNewLine & "If you like this software, please donate by clicking Yes!", vbYesNo, "About NDStation")
-
-    If msgAnswer = vbYes Then
-        Call OpenURL("https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=chuckstudios%40gmail%2ecom&item_name=NDStation%20v1%2e3&buyer_credit_promo_code=&buyer_credit_product_category=&buyer_credit_shipping_method=&buyer_credit_user_address_change=&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8")
-    End If
-    
-End Sub
-
-Private Sub cmdSplash_Click()
-
-    Dim returnedValue As String
-    returnedValue = OpenFileDialog("Common image types|*.bmp;*.gif;*.jpg;*.png|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Splash"), OFN_FILEMUSTEXIST)
-    
-    If file_exists(returnedValue) Then
-        txtSplash.Text = returnedValue
-        WriteIniValue App.path & "\NDStation.ini", "Paths", "Splash", Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
-    End If
-    
-End Sub
-
+' Initialization and unloading stuff
 Private Sub Form_Initialize()
    On Error Resume Next
    Dim iccex As tagInitCommonControlsEx
-   ' Ensure CC available:
    With iccex
        .lngSize = LenB(iccex)
        .lngICC = ICC_USEREX_CLASSES
@@ -785,36 +753,43 @@ Private Sub Form_Initialize()
    On Error GoTo 0
 End Sub
 
-Private Sub cmdBorder_Click()
-   
-    Dim returnedValue As String
-    returnedValue = OpenFileDialog("Common image types|*.bmp;*.gif;*.jpg;*.png|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Border"), OFN_FILEMUSTEXIST)
-    
-    If file_exists(returnedValue) Then
-        txtBorder.Text = returnedValue
-        WriteIniValue App.path & "\NDStation.ini", "Paths", "Border", Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
-    End If
-    
+Private Sub Form_Load()
+    binDirectory = Environ("temp") & "\NDStation"
+    Call clearTemp
+    Call clearEXE
+    Call unpackEXE
+    chkPSRAM.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "PSRAM"))
+    chkCompression.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "Compression"))
 End Sub
 
-Private Sub cmdOutput_Click()
-    txtOutput.Text = BrowseFolders(hWnd, "Select a Folder", BrowseForFolders, CSIDL_DESKTOP) & "\"
+Private Sub Form_Terminate()
+    Call clearTemp
+    Call clearEXE
 End Sub
 
-Private Sub cmdIcon_Click()
 
-    Dim returnedValue As String
-    returnedValue = OpenFileDialog("Bitmap images|*.bmp|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Icon"), OFN_FILEMUSTEXIST)
-    
-    If file_exists(returnedValue) Then
-        txtIcon.Text = returnedValue
-        WriteIniValue App.path & "\NDStation.ini", "Paths", "Icon", Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
+' Control event handling, sorted by tab index
+Private Sub txtGBA_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "gba") Or isFileType(data.Files(1), "bin") Then
+        txtGBA.Text = data.Files(1)
+        txtOutput.Text = Left(data.Files(1), Len(data.Files(1)) - Len(basename(data.Files(1))))
+        txtTitle(0).Text = basename(data.Files(1), ".gba")
+        chkPSRAM.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "PSRAM"))
+        chkCompression.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "Compression"))
+        If filesize(data.Files(1)) > 16777216 Then
+            MsgBox "This ROM is larger than 16MB. PSRAM will be disabled.", , "NDStation"
+            Dim oldValue As Integer
+            oldValue = chkPSRAM.Value
+            chkPSRAM.Enabled = False
+            chkPSRAM.Value = 0
+            Call WriteIniValue(App.path & "\NDStation.ini", "Settings", "PSRAM", CStr(oldValue))
+        Else
+            chkPSRAM.Enabled = True
+        End If
     End If
-
 End Sub
 
 Private Sub cmdGBA_Click()
-
     Dim returnedValue As String
     returnedValue = OpenFileDialog("GBA ROMs|*.gba;*.bin|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "GBA"), OFN_FILEMUSTEXIST)
     If file_exists(returnedValue) Then
@@ -822,19 +797,239 @@ Private Sub cmdGBA_Click()
         txtGBA.Text = returnedValue
         txtOutput.Text = Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
         txtTitle(0).Text = basename(returnedValue, ".gba")
-        
+        chkPSRAM.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "PSRAM"))
+        chkCompression.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "Compression"))
         If filesize(returnedValue) > 16777216 Then
             MsgBox "This ROM is larger than 16MB. PSRAM will be disabled.", , "NDStation"
+            Dim oldValue As Integer
+            oldValue = chkPSRAM.Value
             chkPSRAM.Enabled = False
             chkPSRAM.Value = 0
+            Call WriteIniValue(App.path & "\NDStation.ini", "Settings", "PSRAM", CStr(oldValue))
         Else
             chkPSRAM.Enabled = True
-            chkPSRAM.Value = 1
         End If
     End If
-    
 End Sub
 
+Private Sub txtOutput_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If (GetAttr(data.Files(1)) And vbDirectory) = vbDirectory Then txtOutput.Text = data.Files(1) & "\"
+End Sub
+
+Private Sub cmdOutput_Click()
+    txtOutput.Text = BrowseFolders(hWnd, "Select a Folder", BrowseForFolders, CSIDL_DESKTOP) & "\"
+End Sub
+
+Private Sub chkPSRAM_Click()
+    Call WriteIniValue(App.path & "\NDStation.ini", "Settings", "PSRAM", chkPSRAM.Value)
+End Sub
+
+Private Sub chkCompression_Click()
+    Call WriteIniValue(App.path & "\NDStation.ini", "Settings", "Compression", chkCompression.Value)
+End Sub
+
+Private Sub txtIcon_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "bmp") Then txtIcon.Text = data.Files(1)
+End Sub
+
+Private Sub cmdIcon_Click()
+    Dim returnedValue As String
+    returnedValue = OpenFileDialog("Bitmap images|*.bmp|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Icon"), OFN_FILEMUSTEXIST)
+    If file_exists(returnedValue) Then
+        txtIcon.Text = returnedValue
+        WriteIniValue App.path & "\NDStation.ini", "Paths", "Icon", Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
+    End If
+End Sub
+
+Private Sub txtBorder_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "bmp") Or isFileType(data.Files(1), "gif") Or isFileType(data.Files(1), "jpg") Or isFileType(data.Files(1), "png") Then txtBorder.Text = data.Files(1)
+End Sub
+
+Private Sub cmdBorder_Click()
+    Dim returnedValue As String
+    returnedValue = OpenFileDialog("Common image types|*.bmp;*.gif;*.jpg;*.png|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Border"), OFN_FILEMUSTEXIST)
+    If file_exists(returnedValue) Then
+        txtBorder.Text = returnedValue
+        WriteIniValue App.path & "\NDStation.ini", "Paths", "Border", Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
+    End If
+End Sub
+
+Private Sub txtSplash_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
+    If isFileType(data.Files(1), "bmp") Or isFileType(data.Files(1), "gif") Or isFileType(data.Files(1), "jpg") Or isFileType(data.Files(1), "png") Then txtSplash.Text = data.Files(1)
+End Sub
+
+Private Sub cmdSplash_Click()
+    Dim returnedValue As String
+    returnedValue = OpenFileDialog("Common image types|*.bmp;*.gif;*.jpg;*.png|All files|*.*", , ReadIniValue(App.path & "\NDStation.ini", "Paths", "Splash"), OFN_FILEMUSTEXIST)
+    If file_exists(returnedValue) Then
+        txtSplash.Text = returnedValue
+        WriteIniValue App.path & "\NDStation.ini", "Paths", "Splash", Left(returnedValue, Len(returnedValue) - Len(basename(returnedValue)))
+    End If
+End Sub
+
+Private Sub cmdAdd_Click()
+    If file_exists(txtGBA.Text) Then
+        Dim rowNumber As Integer
+        rowNumber = lvwBatch.ListItems.Count + 1
+        
+        'Write the GBA file
+        lvwBatch.ListItems.Add rowNumber, , txtGBA.Text
+        
+        'Write the output folder
+        lvwBatch.ListItems(rowNumber).SubItems(1) = txtOutput.Text
+        
+        'Write the title of the game, if no title, then use "NDStation"
+        If Trim(txtTitle(0).Text) = vbNullString Then
+            lvwBatch.ListItems(rowNumber).SubItems(2) = "NDStation"
+        ElseIf Trim(txtTitle(1).Text) = vbNullString Then
+            lvwBatch.ListItems(rowNumber).SubItems(2) = txtTitle(0).Text
+        ElseIf Trim(txtTitle(2).Text) = vbNullString Then
+            lvwBatch.ListItems(rowNumber).SubItems(2) = txtTitle(0).Text & ";" & txtTitle(1).Text
+        Else
+            lvwBatch.ListItems(rowNumber).SubItems(2) = txtTitle(0).Text & ";" & txtTitle(1).Text & ";" & txtTitle(2).Text
+        End If
+        
+        'Write the PSRAM value
+        lvwBatch.ListItems(rowNumber).SubItems(3) = chkPSRAM.Value
+        
+        'Write the compression value
+        lvwBatch.ListItems(rowNumber).SubItems(4) = chkCompression.Value
+        
+        'Write the custom icon, if no icon, use default
+        If file_exists(txtIcon.Text) Then
+            lvwBatch.ListItems(rowNumber).SubItems(5) = txtIcon.Text
+        Else
+            lvwBatch.ListItems(rowNumber).SubItems(5) = binDirectory & "\gfx\icon.bmp"
+        End If
+        
+        'Write the custom border, if no border, use default
+        If file_exists(txtBorder.Text) Then
+            lvwBatch.ListItems(rowNumber).SubItems(6) = txtBorder.Text
+        Else
+            lvwBatch.ListItems(rowNumber).SubItems(6) = binDirectory & "\gfx\border.bmp"
+        End If
+        
+        'Write the custom splash, if no splash, use default
+        If file_exists(txtSplash.Text) Then
+            lvwBatch.ListItems(rowNumber).SubItems(7) = txtSplash.Text
+        Else
+            lvwBatch.ListItems(rowNumber).SubItems(7) = binDirectory & "\gfx\splash.bmp"
+        End If
+    End If
+End Sub
+
+Private Sub cmdDelete_Click()
+    On Error Resume Next
+    lvwBatch.ListItems.Remove lvwBatch.SelectedItem.Index
+End Sub
+
+Private Sub cmdRun_Click()
+    Dim i As Integer, progressOriginal As Integer
+    'Remember how many items were in the ListView at the start
+    progressOriginal = lvwBatch.ListItems.Count
+    If progressOriginal > 0 Then
+        'Set i equal to the number of items in the ListView
+        For i = lvwBatch.ListItems.Count To 1 Step -1
+            'Make the progress bar update... Current amount of items divided by original amount, all multiplied by 100
+            pbrProgress.Value = 100 - ((i / progressOriginal) * 100)
+            'Process the elements of row i in the ListView
+            Call processGame(lvwBatch.ListItems(i).Text, lvwBatch.ListItems(i).SubItems(1), lvwBatch.ListItems(i).SubItems(2), lvwBatch.ListItems(i).SubItems(3), lvwBatch.ListItems(i).SubItems(4), lvwBatch.ListItems(i).SubItems(5), lvwBatch.ListItems(i).SubItems(6), lvwBatch.ListItems(i).SubItems(7))
+            'Delete row i
+            lvwBatch.ListItems.Remove (i)
+            'Subtract 1 from i and repeat until i = 1 at this step
+        Next
+        pbrProgress.Value = 100
+        MsgBox "Conversion complete!", , "NDStation"
+        pbrProgress.Value = 0
+    End If
+End Sub
+
+Private Sub cmdClear_Click()
+    Dim i As Integer
+    For i = 1 To lvwBatch.ListItems.Count
+        lvwBatch.ListItems.Remove 1
+    Next
+End Sub
+
+Private Sub cmdAbout_Click()
+    Dim msgAnswer As VbMsgBoxResult
+    msgAnswer = MsgBox("NDStation v1.3 beta" & vbNewLine & "By chuckstudios" & vbNewLine & vbNewLine & "Many thanks to cory1492 (GBAldr), Noda (EFSlib), dg10050 (various things)," & vbNewLine & "and of course, the beta testers." & vbNewLine & vbNewLine & "If you like this software, please donate by clicking Yes!", vbYesNo, "About NDStation")
+    If msgAnswer = vbYes Then
+        Call OpenURL("https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=chuckstudios%40gmail%2ecom&item_name=NDStation%20v1%2e3&buyer_credit_promo_code=&buyer_credit_product_category=&buyer_credit_shipping_method=&buyer_credit_user_address_change=&no_shipping=0&no_note=1&tax=0&currency_code=USD&lc=US&bn=PP%2dDonationsBF&charset=UTF%2d8")
+    End If
+End Sub
+
+
+'The processing code
+Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As String, _
+                    usePSRAM As Boolean, useCompression As Boolean, _
+                    iconFile As String, borderFile As String, splashFile As String)
+
+    Dim output As String
+    
+    'Output file
+    output = outputFolder & basename(gbaFile, ".gba") & ".nds"
+    
+    'Handle the scenario of the output file already existing
+    If file_exists(output) Then Call unlink(output)
+    
+    'Changing working directory
+    ChDrive Left(binDirectory, 2)
+    ChDir binDirectory
+    
+    'GBA handling
+    Call copy(gbaFile, binDirectory & "\data\game.gba")
+    If useCompression Then
+        Call ShellandWait(binDirectory & "\gzip.exe --best data\game.gba")
+        Call rename(binDirectory & "\data\game.gba.gz", binDirectory & "\data\game.gz")
+        Call unlink(binDirectory & "\data\game.gba")
+    End If
+    
+    'Border handling
+    Call copy(borderFile, binDirectory & "\border.bmp")
+    Call ShellandWait(binDirectory & "\grit.exe border.bmp -gB16 -gT! -gzl -fh! -ftbin")
+    Call rename(binDirectory & "\border.img.bin", binDirectory & "\data\border.lz7")
+    
+    'Splash handling
+    Call copy(splashFile, binDirectory & "\splash.bmp")
+    Call ShellandWait(binDirectory & "\grit.exe splash.bmp -gB16 -gT! -gzl -fh! -ftbin")
+    Call rename(binDirectory & "\splash.img.bin", binDirectory & "\data\splash.lz7")
+    
+    'Icon handling
+    Call copy(iconFile, binDirectory & "\icon.bmp")
+    
+    'Modefile handling
+    Dim modefile As Integer
+    modefile = fopen(binDirectory & "\data\mode.txt")
+    If usePSRAM Then
+        If useCompression Then
+            Call fwrite(modefile, "PC")
+        Else
+            Call fwrite(modefile, "PU")
+        End If
+    Else
+        If useCompression Then
+            Call fwrite(modefile, "NC")
+        Else
+            Call fwrite(modefile, "NU")
+        End If
+    End If
+    Call fclose(modefile)
+    
+    'Compiling the NDS file
+    Call ShellandWait(binDirectory & "\ndstool.exe -c x.nds -7 7.bin -9 9.bin -d data -g ""NDST"" ""13"" ""NDStation"" -b icon.bmp """ & gameTitle & """")
+    Call EFS_patch(binDirectory & "\x.nds")
+    
+    'Moving the NDS to its final destination
+    Call rename(binDirectory & "\x.nds", output)
+    
+    'Deleting the temporary files
+    Call clearTemp
+   
+End Sub
+
+
+'Misc functions
 Private Sub clearTemp()
     On Error Resume Next
     Call unlink(binDirectory & "\x.nds")
@@ -850,7 +1045,6 @@ Private Sub clearTemp()
     Call unlink(binDirectory & "\data\game")
     Call unlink(binDirectory & "\data\border.lz7")
     Call unlink(binDirectory & "\data\splash.lz7")
-
 End Sub
 
 Private Sub clearEXE()
@@ -885,209 +1079,9 @@ Private Sub unpackEXE()
     Call extractRes("binary", "arm9", binDirectory & "\9.bin")
 End Sub
 
-Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As String, _
-                    usePSRAM As Boolean, useCompression As Boolean, _
-                    iconFile As String, borderFile As String, splashFile As String)
-                    
-    Dim output As String
-    
-    
-    'Output file
-    output = outputFolder & basename(gbaFile, ".gba") & ".nds"
-    
-    
-    'Handle the scenario of the output file already existing
-    If file_exists(output) Then Call unlink(output)
-    
-    
-    'Changing working directory
-    ChDrive Left(binDirectory, 2)
-    ChDir binDirectory
-    
-    
-    'GBA handling
-    Call copy(gbaFile, binDirectory & "\data\game.gba")
-    If useCompression Then
-        Call ShellandWait(binDirectory & "\gzip.exe --best data\game.gba")
-        Call rename(binDirectory & "\data\game.gba.gz", binDirectory & "\data\game.gz")
-        Call unlink(binDirectory & "\data\game.gba")
-    End If
-    
-    
-    'Border handling
-    Call copy(borderFile, binDirectory & "\border.bmp")
-    Call ShellandWait(binDirectory & "\grit.exe border.bmp -gB16 -gT! -gzl -fh! -ftbin")
-    Call rename(binDirectory & "\border.img.bin", binDirectory & "\data\border.lz7")
-    
-    
-    'Splash handling
-    Call copy(splashFile, binDirectory & "\splash.bmp")
-    Call ShellandWait(binDirectory & "\grit.exe splash.bmp -gB16 -gT! -gzl -fh! -ftbin")
-    Call rename(binDirectory & "\splash.img.bin", binDirectory & "\data\splash.lz7")
-    
-    
-    'Icon handling
-    Call copy(iconFile, binDirectory & "\icon.bmp")
-    
-    
-    'Modefile handling
-    Dim modefile As Integer
-    modefile = fopen(binDirectory & "\data\mode.txt")
-    If usePSRAM Then
-        If useCompression Then
-            Call fwrite(modefile, "PC")
-        Else
-            Call fwrite(modefile, "PU")
-        End If
-    Else
-        If useCompression Then
-            Call fwrite(modefile, "NC")
-        Else
-            Call fwrite(modefile, "NU")
-        End If
-    End If
-    Call fclose(modefile)
-    
-    
-    'Compiling the NDS file
-    Call ShellandWait(binDirectory & "\ndstool.exe -c x.nds -7 7.bin -9 9.bin -d data -g ""NDST"" ""13"" ""NDStation"" -b icon.bmp """ & gameTitle & """")
-    Call EFS_patch(binDirectory & "\x.nds")
-    
-    
-    'Moving the NDS to its final destination
-    Call rename(binDirectory & "\x.nds", output)
-    
-    
-    'Deleting the temporary files
-    Call clearTemp
-   
-    
-End Sub
-
-Private Sub Form_Load()
-    binDirectory = Environ("temp") & "\NDStation"
-    Call clearTemp
-    Call clearEXE
-    Call unpackEXE
-End Sub
-
-
-Private Sub cmdAdd_Click()
-
-    If file_exists(txtGBA.Text) Then
-        Dim rowNumber As Integer
-        rowNumber = lvwBatch.ListItems.Count + 1
-        
-        lvwBatch.ListItems.Add rowNumber, , txtGBA.Text
-        lvwBatch.ListItems(rowNumber).SubItems(1) = txtOutput.Text
-        
-        If Trim(txtTitle(0).Text) = vbNullString Then
-            lvwBatch.ListItems(rowNumber).SubItems(2) = "NDStation"
-        ElseIf Trim(txtTitle(1).Text) = vbNullString Then
-            lvwBatch.ListItems(rowNumber).SubItems(2) = txtTitle(0).Text
-        ElseIf Trim(txtTitle(2).Text) = vbNullString Then
-            lvwBatch.ListItems(rowNumber).SubItems(2) = txtTitle(0).Text & ";" & txtTitle(1).Text
-        Else
-            lvwBatch.ListItems(rowNumber).SubItems(2) = txtTitle(0).Text & ";" & txtTitle(1).Text & ";" & txtTitle(2).Text
-        End If
-        
-        lvwBatch.ListItems(rowNumber).SubItems(3) = chkPSRAM.Value
-        lvwBatch.ListItems(rowNumber).SubItems(4) = chkCompression.Value
-        
-        If file_exists(txtIcon.Text) Then
-            lvwBatch.ListItems(rowNumber).SubItems(5) = txtIcon.Text
-        Else
-            lvwBatch.ListItems(rowNumber).SubItems(5) = binDirectory & "\gfx\icon.bmp"
-        End If
-        
-        If file_exists(txtBorder.Text) Then
-            lvwBatch.ListItems(rowNumber).SubItems(6) = txtBorder.Text
-        Else
-            lvwBatch.ListItems(rowNumber).SubItems(6) = binDirectory & "\gfx\border.bmp"
-        End If
-    
-        If file_exists(txtSplash.Text) Then
-            lvwBatch.ListItems(rowNumber).SubItems(7) = txtSplash.Text
-        Else
-            lvwBatch.ListItems(rowNumber).SubItems(7) = binDirectory & "\gfx\splash.bmp"
-        End If
-    End If
-    
-End Sub
-
-Private Sub cmdDelete_Click()
+Private Function isFileType(filename As String, extension As String) As Boolean
     On Error Resume Next
-    lvwBatch.ListItems.Remove lvwBatch.SelectedItem.Index
-End Sub
+    isFileType = False
+    If LCase(Right(filename, Len(extension) + 1)) = "." & extension Then isFileType = True
+End Function
 
-Private Sub cmdClear_Click()
-    Dim I As Integer
-    For I = 1 To lvwBatch.ListItems.Count
-        lvwBatch.ListItems.Remove 1
-    Next
-End Sub
-
-Private Sub cmdRun_Click()
-
-    'These comments are dedicated to the memory of Dylan Garrett
-
-    Dim I As Integer, progressOriginal As Integer
-    
-    'Remember how many items were in the ListView at the start
-    progressOriginal = lvwBatch.ListItems.Count
-    
-    If progressOriginal > 0 Then
-    
-        'Set i equal to the number of items in the ListView
-        For I = lvwBatch.ListItems.Count To 1 Step -1
-            'Make the progress bar update... Current amount of items divided by original amount, all multiplied by 100
-            pbrProgress.Value = 100 - ((I / progressOriginal) * 100)
-            'Process the elements of row i in the ListView
-            Call processGame(lvwBatch.ListItems(I).Text, lvwBatch.ListItems(I).SubItems(1), lvwBatch.ListItems(I).SubItems(2), lvwBatch.ListItems(I).SubItems(3), lvwBatch.ListItems(I).SubItems(4), lvwBatch.ListItems(I).SubItems(5), lvwBatch.ListItems(I).SubItems(6), lvwBatch.ListItems(I).SubItems(7))
-            'Delete row i
-            lvwBatch.ListItems.Remove (I)
-            'Subtract 1 from i and repeat until i = 1 at this step
-        Next
-        
-        pbrProgress.Value = 100
-        MsgBox "Conversion complete!", , "NDStation"
-        pbrProgress.Value = 0
-    End If
-End Sub
-
-Private Sub Form_Terminate()
-    Call clearTemp
-    Call clearEXE
-End Sub
-
-Private Sub txtGBA_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(data.Files(1), "gba") Or isFileType(data.Files(1), "bin") Then
-        txtGBA.Text = data.Files(1)
-        txtOutput.Text = Left(data.Files(1), Len(data.Files(1)) - Len(basename(data.Files(1))))
-        txtTitle(0).Text = basename(data.Files(1), ".gba")
-        If filesize(data.Files(1)) > 16777216 Then
-            MsgBox "This ROM is larger than 16MB. PSRAM will be disabled.", , "NDStation"
-            chkPSRAM.Enabled = False
-            chkPSRAM.Value = 0
-        Else
-            chkPSRAM.Enabled = True
-            chkPSRAM.Value = 1
-        End If
-    End If
-End Sub
-
-Private Sub txtIcon_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(data.Files(1), "bmp") Then txtIcon.Text = data.Files(1)
-End Sub
-
-Private Sub txtBorder_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(data.Files(1), "bmp") Or isFileType(data.Files(1), "gif") Or isFileType(data.Files(1), "jpg") Or isFileType(data.Files(1), "png") Then txtBorder.Text = data.Files(1)
-End Sub
-
-Private Sub txtOutput_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If (GetAttr(data.Files(1)) And vbDirectory) = vbDirectory Then txtOutput.Text = data.Files(1) & "\"
-End Sub
-
-Private Sub txtSplash_OLEDragDrop(data As DataObject, Effect As Long, Button As Integer, Shift As Integer, X As Single, Y As Single)
-    If isFileType(data.Files(1), "bmp") Or isFileType(data.Files(1), "gif") Or isFileType(data.Files(1), "jpg") Or isFileType(data.Files(1), "png") Then txtSplash.Text = data.Files(1)
-End Sub
