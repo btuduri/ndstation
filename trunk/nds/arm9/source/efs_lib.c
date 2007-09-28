@@ -362,7 +362,7 @@ extern int EFS_fread(void *buffer, u32 blockSize, u32 numBlocks, EFS_FILE *file)
 	int tempReturn = 0;
 	fseek(nds_file, file->seek_pos, SEEK_SET);
 	tempReturn = fread(buffer, blockSize, numBlocks, nds_file);
-	file->seek_pos += tempReturn;
+	file->seek_pos += blockSize * numBlocks;
 	return tempReturn;
 }
 
@@ -372,7 +372,7 @@ extern int EFS_fwrite(void *buffer, u32 blockSize, u32 numBlocks, EFS_FILE *file
 	int tempReturn = 0;
 	fseek(nds_file, file->seek_pos, SEEK_SET);
 	tempReturn = fwrite(buffer, blockSize, numBlocks, nds_file);
-	file->seek_pos += tempReturn;
+	file->seek_pos += blockSize * numBlocks;
 	return tempReturn;
 }
 

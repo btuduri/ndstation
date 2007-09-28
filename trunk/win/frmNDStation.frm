@@ -798,7 +798,7 @@ Private Sub cmdBorder_Click()
 End Sub
 
 Private Sub cmdOutput_Click()
-    txtOutput.Text = BrowseFolders(hWnd, "Select a Folder", BrowseForFolders, CSIDL_DESKTOP)
+    txtOutput.Text = BrowseFolders(hWnd, "Select a Folder", BrowseForFolders, CSIDL_DESKTOP) & "\"
 End Sub
 
 Private Sub cmdIcon_Click()
