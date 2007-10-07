@@ -54,21 +54,16 @@ Public Function basename(path As String, Optional suffix As String) As String
     basename = Mid(temppath, oldslashloc(2) + 1)
 End Function
                     
-Public Function copy(source As String, dest As String) As Boolean
+Public Sub copy(source As String, dest As String)
     Dim fso
     Set fso = CreateObject("Scripting.FileSystemObject")
     fso.CopyFile source, dest
-    If fso.FileExists(dest) Then
-        copy = True
-    Else
-        copy = False
-    End If
-End Function
+End Sub
 
-Public Function fclose(handle As Integer)
+Public Sub fclose(handle As Integer)
     On Error Resume Next
     Close handle
-End Function
+End Sub
 
 Public Function file_exists(filename As String) As Boolean
     Dim fso
@@ -91,24 +86,22 @@ Public Function filesize(filename As String) As Long
 End Function
 
 Public Function fopen(filename As String) As Integer
-    On Error GoTo ErrorTrap
+    On Error Resume Next
     fopen = FreeFile
     Open filename For Binary As fopen
     pointer(fopen) = 1
-ErrorTrap:
 End Function
 
 Public Function fread(handle As Integer, length As Long) As String
+    On Error Resume Next
+    
     Dim readtemp As String
-
-    On Error GoTo ErrorTrap
     readtemp = Space(LOF(handle))
     If length > 0 Then
         Get handle, pointer(handle), readtemp
         pointer(handle) = pointer(handle) + length
         fread = Left(readtemp, length)
     End If
-ErrorTrap:
 End Function
 
 Public Sub fseek(handle As Integer, ByVal offset As Long, Optional whence As Integer = SEEK_SET)
@@ -131,28 +124,27 @@ Public Function ftell(handle As Integer) As Long
 End Function
 
 Public Function fwrite(handle As Integer, ByVal data As String, Optional length As Long = -1) As Integer
-    On Error GoTo ErrorTrap
+    On Error Resume Next
     If length > 0 Then data = Left(data, length)
     If Len(data) > 0 Then
         Put handle, pointer(handle), data
         pointer(handle) = pointer(handle) + Len(data)
     End If
-ErrorTrap:
 End Function
 
-Public Function rename(source As String, dest As String)
+Public Sub rename(source As String, dest As String)
     On Error Resume Next
     Dim fso As FileSystemObject
     Set fso = CreateObject("Scripting.FileSystemObject")
     fso.MoveFile source, dest
-End Function
+End Sub
 
-Public Function rewind(handle As Integer)
+Public Sub rewind(handle As Integer)
     On Error Resume Next
     pointer(handle) = 1
-End Function
+End Sub
 
-Public Function unlink(filename As String)
+Public Sub unlink(filename As String)
     On Error Resume Next
     Call Kill(filename)
-End Function
+End Sub

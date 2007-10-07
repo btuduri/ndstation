@@ -16,12 +16,9 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-#ifndef NDS_FLASH_INCLUDE
-#define NDS_FLASH_INCLUDE
 
 #define LEN 0x8000         // 1mbit NOR page size
 #define MAX_NOR 0x2000000  // 32MByte 
-#define RETRY_ON_ERROR 3   // number of times to retry writing a block if it has an error
 
 int isPSRAM(char* path);
 int isGZ(char* path);
@@ -35,5 +32,3 @@ int uncompressToCard(char *source, char *dest);
 void copyToCard(char *source, char *dest);
 
 int checkNOR(char* filename);
-
-#endif // NDS_FLASH_INCLUDE

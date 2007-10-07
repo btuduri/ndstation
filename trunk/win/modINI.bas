@@ -22,7 +22,7 @@ Attribute VB_Name = "modINI"
 
 Option Explicit
 
-Public Function ReadIniValue(INIpath As String, KEY As String, Variable As String) As String
+Public Function ReadIniValue(INIpath As String, KEY As String, Variable As String, Optional default As String = vbNullString) As String
 Dim NF As Integer
 Dim Temp As String
 Dim LcaseTemp As String
@@ -30,7 +30,7 @@ Dim ReadyToRead As Boolean
     
 AssignVariables:
         NF = FreeFile
-        ReadIniValue = ""
+        ReadIniValue = default
         KEY = "[" & LCase$(KEY) & "]"
         Variable = LCase$(Variable)
     

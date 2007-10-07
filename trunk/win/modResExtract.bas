@@ -20,7 +20,7 @@ Attribute VB_Name = "modResExtract"
 
 ' Extracts resources to a file
 
-Public Sub extractRes(datadir As String, dataname As Variant, filename As String)
+Public Sub extractRes(datadir As String, dataname As String, filename As String)
     Dim myArray() As Byte
     Dim myFile As Long
     If Dir(filename) = "" Then
