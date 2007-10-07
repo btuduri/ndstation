@@ -24,7 +24,7 @@ Option Explicit
 
 Private Const efsMagicString = "Î©¿ EFSstr"
 
-Private Function dec2hex(ByVal num As String) As String
+Public Function dec2hex(ByVal num As String) As String
     Dim number As String
     Dim neg As Boolean
     number = num
@@ -48,7 +48,7 @@ Private Function dec2hex(ByVal num As String) As String
     dec2hex = LCase(number)
 End Function
 
-Private Function hex2nds(ByVal num As String) As String
+Public Function hex2nds(ByVal num As String) As String
     Dim number As String
     number = num
     Do While Len(number) < 8

@@ -78,7 +78,7 @@ End Enum
 ' Example:
 '    MsgBox "File selected: " & ShowOpenFileDialog("Text files (*.txt)|*.txt|All files (*.*)|*.*", "txt", "C:\Documents", OFN_FILEMUSTEXIST)
 
-Function OpenFileDialog(ByVal sFilter As String, Optional ByVal sDefExt As String, Optional ByVal sInitDir As String, Optional ByVal lFlags As Long, Optional ByVal hParent As Long) As String
+Public Function OpenFileDialog(ByVal sFilter As String, Optional ByVal sDefExt As String, Optional ByVal sInitDir As String, Optional ByVal lFlags As Long, Optional ByVal hParent As Long) As String
     Dim OFN As OpenFilename
     On Error Resume Next
     
