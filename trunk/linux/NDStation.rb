@@ -1,15 +1,14 @@
 #!/usr/bin/env ruby
+require 'open-uri'
+
+#check files existence
 unless File.exist?("./ndstool") and File.exist?("./7.bin") and File.exist?("./9.bin")
   puts "Some files are teh missingz, grabbing them from internetz naw :)"
  
-  Net::HTTP.start("some.downloadplace.com") { |http|
-  resp = http.get("/ndstool", "/7.bin", "/9.bin")
-    open("fun.jpg", "wb") { |file|
-    file.write(resp.body)
-    }
-  }
+  open("ndstool","w").write(open("link.site.com/ndstool").read) #grab files from the internet
+  
   else
-  unless File.executable?("./ndstool")
+  unless File.executable?("./ndstool") #check if ndstool is executable
     puts "ndstool is not executable, making it executable"
     %x(chmod +x ndstool)
     exit
