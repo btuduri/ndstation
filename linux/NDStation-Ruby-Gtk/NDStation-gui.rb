@@ -10,7 +10,7 @@ window = Gtk::Window.new
 window.set_size_request(400,500)
 window.signal_connect("destroy") { Gtk.main_quit}
 window.border_width=(10)
- 
+
 vbox_main = Gtk::VBox.new
 
 hbox1 = Gtk::HBox.new
@@ -19,6 +19,10 @@ table1 = Gtk::Table.new(2, 3)
 gba_label = Gtk::Label.new("GBA Rom:")
 gba_entry = Gtk::Entry.new
 gba_file = Gtk::FileChooserButton.new("GBA File", Gtk::FileChooser::ACTION_OPEN)
+
+#gba_file.ok_button.signal_connect("clicked") do
+#  puts "File: #{gba_file.filename}"
+#end
 
 output_label = Gtk::Label.new("Output Folder:")
 output_entry = Gtk::Entry.new
@@ -46,11 +50,11 @@ hbox4 = Gtk::HBox.new
 
 hbox5 = Gtk::HBox.new
 table3 = Gtk::Table.new(3,3)
-#
+
 icon_label = Gtk::Label.new("Icon:")
 icon_entry = Gtk::Entry.new 
 icon_file = Gtk::FileChooserButton.new("Icon", Gtk::FileChooser::ACTION_OPEN)
-#
+
 splash_label = Gtk::Label.new("Splash:")
 splash_entry = Gtk::Entry.new 
 splash_file = Gtk::FileChooserButton.new("Splash", Gtk::FileChooser::ACTION_OPEN)
