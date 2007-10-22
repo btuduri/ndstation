@@ -1,13 +1,12 @@
 #!/usr/bin/env ruby
 #depends: ruby and ruby-gnome2
 #This project is far from complete, the code below handles the gui only.
-
 require 'gtk2'
 
 Gtk.init
 
 window = Gtk::Window.new
-window.set_size_request(400,500)
+window.set_size_request(400,350)
 window.signal_connect("destroy") { Gtk.main_quit}
 window.border_width=(10)
 
@@ -69,14 +68,18 @@ table3.attach(border_label, 0, 1, 2, 3).attach(border_entry, 1, 2, 2, 3).attach(
 
 hbox6 = Gtk::HBox.new
 
+hbox7 = Gtk::HBox.new
+patch = Gtk::Button.new("Patch")
+
 hbox1.pack_start(table1, true, true, 0)
 hbox2.pack_start(Gtk::HSeparator.new, true, true, 0)
 hbox3.pack_start(table2, true, true, 0)
 hbox4.pack_start(Gtk::HSeparator.new, true, true, 0)
 hbox5.pack_start(table3, true, true, 0)
 hbox6.pack_start(Gtk::HSeparator.new, true, true, 0)
+hbox7.pack_start(patch, true, true, 0)
 
-vbox_main.pack_start(hbox1, false, false, 0).pack_start(hbox2, false, false, 10).pack_start(hbox3, false, false, 0).pack_start(hbox4, false, false, 10).pack_start(hbox5, false, false, 0).pack_start(hbox6, false, false, 10)
+vbox_main.pack_start(hbox1, false, false, 0).pack_start(hbox2, false, false, 10).pack_start(hbox3, false, false, 0).pack_start(hbox4, false, false, 10).pack_start(hbox5, false, false, 0).pack_start(hbox6, false, false, 10).pack_start(hbox7, false, false, 0)
 window.add(vbox_main)
 window.show_all
 Gtk.main
