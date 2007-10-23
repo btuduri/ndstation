@@ -28,10 +28,6 @@ gba_file.add_filter(filter_text);
 #  puts "File: #{gba_file.filename}"
 #end
 
-output_label = Gtk::Label.new("Output Folder:")
-output_entry = Gtk::Entry.new
-output_file = Gtk::FileChooserButton.new("Output Folder", Gtk::FileChooser::ACTION_SELECT_FOLDER)
-
 table1.attach(gba_label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK).attach(gba_entry, 1, 2, 0, 1, Gtk::SHRINK, Gtk::SHRINK).attach(gba_file, 2, 3, 0, 1, Gtk::SHRINK, Gtk::SHRINK)
 table1.attach(output_label, 0, 1, 1, 2, Gtk::SHRINK, Gtk::SHRINK, 5, 0).attach(output_entry, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK).attach(output_file, 2, 3, 1, 2, Gtk::SHRINK, Gtk::SHRINK, 5, 0)
     
