@@ -1,0 +1,7 @@
+1) Link widgets to methods in NDStation-patching that way the GUI can be independent of the
+patching methods.
+
+2) Clean up the widget layout, maybe make NDStationWindow a child of Window so that I can 
+eliminate the repeated typing of lengthy widget names.
+
+3) Figure out treelist views for batch patching.

@@ -1,0 +1,33 @@
+1)The extract method needs fixing. A short explanation of how it works.
+
+The user inputs a file, lets call it "ind-sma.zip". The extract method splits the filename
+along the dot. What's left is the filename and the extension("ind-sma", "zip"). It then
+stores this array in a variable reg and tests whether reg[1]("zip") == "gba", if that fails
+the file must be in a compressed format so it executes a case statement which checks
+reg[1] with known compressed extension names and executes the required program to
+decompress the file. This is all good in theory but what happens when a file is named
+ind.zph.nds. If thats the case the reg array will be ["ind", "sma.nds"] and the conditions
+will all fail. If the compressed filename and its contents have different names
+patching will fail. Those bugs need to be fixed soon.
+
+After the file has been successfully extracted the file_name variable of the object Rom
+needs to be renamed to the correct extension type("gba") so that patching can proceed. By
+concatenating we can achieve this:
+
+rom = Rom.new("file_name"  ,    "path"    ,       "icon"         , "title"   )
+rom = Rom.new("ind-sma.zip", "/home/user/", "/home/user/icon.png", "Super Mario")
+
+file_name needs to be have an accessor method to be able to change its contents.
+
+puts rom.file_name => "ind-sma.zip"
+rom.file_name = reg[0] + '.gba'
+rom.file_name => "ind-sma.gba"
+rom => #<Rom:########## @file_name="ind-sma.gba", @title="Super Mario", @icon="/home/user/icon.png", @path="/home/user/">
+
+2)Check for decompression executables may fail in certain systems, it assumes that user
+executables are stored in /usr/bin. Many systems don't follow this guide line.
+
+3)Some sort of progress bar for downloads? Wget offers that option but I would rather keep
+the download method in ruby rather than call up an external command.
+
+4)Add a check for executable_real?(ndstool) and make it executable if false.
