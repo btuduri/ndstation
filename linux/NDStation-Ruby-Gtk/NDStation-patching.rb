@@ -21,7 +21,7 @@ def check
       exit
     end
   else
-    exec_path =  Dir.entries("/usr/bin") #checks for 7z, unrar and uzip executables in /usr/bin
+    exec_path =  Dir.entries("/usr/bin")  #checks for 7z, unrar and uzip executables in /usr/bin
     unless exec_path.include?("7z") and exec_path.include?("unrar") and exec_path.include?("unzip")
       puts "please make sure you have 7z, unrar and unzip installed"
       exit
@@ -30,7 +30,7 @@ def check
 end
 
 class Rom
-  attr_reader :file_name, :path, :icon, :title
+  attr_accessor :file_name, :path, :icon, :title
   def initialize(file_name, path, icon, title)
     @file_name = file_name
     @path = path
@@ -46,26 +46,27 @@ class Rom
       puts "Exiting"
     end
   end 
-  def extract(file_name) #split filename to string and extension, compares extension
-    reg = file_name.split('.', 2) #and executes command to extract file.
-    case
-    when reg.include?('rar')
-      %x(unrar x #@filename)
-    when reg.include?('zip')
-      %x(unzip #@filename)
-    when reg.include?('tar.gz')
-      %x(tar -xf #@filename)
-    when reg.include?('tar.bz2')
-      %x(tar -xf #@filename)
-    when reg.include?('7z')
-      %x(7z e #@filename)
-    else
-      puts "File is not compressed"
+  def extract                       #split filename to string and extension, compares extension
+    reg = file_name.split('.', 2)   #and executes command to extract file.
+    unless reg[1] == "gba"
+      case
+      when reg.include?('rar')
+        %x(unrar x #@filename)
+      when reg.include?('zip')
+        %x(unzip #@filename)
+      when reg.include?('tar.gz')
+        %x(tar -xf #@filename)
+      when reg.include?('tar.bz2')
+        %x(tar -xf #@filename)
+      when reg.include?('7z')
+        %x(7z e #@filename)
+      end
+      rom.file_name = reg[0] + ".gba"
     end
   end
 end
 
 if __FILE__ == $0 #irb
   check
-  #Rom.new("file_name", "path", "icon.png", "title").extract.patch
+  #rom = Rom.new("file_name", "path", "icon.png", "title").extract.patch
 end

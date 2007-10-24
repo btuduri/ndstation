@@ -18,6 +18,11 @@ table1 = Gtk::Table.new(2, 3)
 gba_label = Gtk::Label.new("GBA Rom:")
 gba_entry = Gtk::Entry.new
 gba_file = Gtk::FileChooserButton.new("GBA File", Gtk::FileChooser::ACTION_OPEN)
+
+output_label = Gtk::Label.new("Output Folder")
+output_entry = Gtk::Entry.new
+output_file = Gtk::FileChooserButton.new("Output Folder", Gtk::FileChooser::ACTION_SELECT_FOLDER)
+
 #  Added a filefilter to filter out all files except .gba -dg10050
 filter_text = Gtk::FileFilter.new
 filter_text.set_name("GBA files");
