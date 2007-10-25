@@ -4,6 +4,7 @@
     <File filename="Welcome" />
     <File filename="./NDStation/Main.cs" />
     <File filename="./NDStation/MainWindow.cs" />
+    <File filename="./NDStation/gtk-gui/MainWindow.cs" />
   </Files>
   <Views>
     <ViewMemento Id="MonoDevelop.Ide.Gui.Pads.ProjectPad">
@@ -11,7 +12,6 @@
         <Node expanded="True">
           <Node name="NDStation" expanded="True">
             <Node name="Resources" expanded="True" />
-            <Node name="UserInterface" expanded="True" />
             <Node name="MainWindow.cs" expanded="False" selected="True" />
           </Node>
         </Node>
