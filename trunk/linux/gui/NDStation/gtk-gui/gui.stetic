@@ -1,27 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <stetic-interface>
-  <widget class="Gtk.Window" id="MainWindow" design-size="579 490">
+  <widget class="Gtk.Window" id="MainWindow" design-size="769 490">
     <action-group name="Default" />
+    <property name="MemberName" />
     <property name="Title" translatable="yes">NDStation Patcher</property>
     <property name="Icon">stock:stock_score-normal Menu</property>
     <property name="WindowPosition">CenterOnParent</property>
     <property name="DefaultWidth">1</property>
-    <property name="Events">0</property>
-    <property name="MemberName" />
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
       <widget class="Gtk.VBox" id="vbox1">
-        <property name="Events">0</property>
         <property name="MemberName" />
         <child>
           <widget class="Gtk.VBox" id="vbox3">
-            <property name="Events">0</property>
             <property name="MemberName" />
             <child>
               <widget class="Gtk.Image" id="image2">
-                <property name="Pixbuf">resource:top.bmp</property>
-                <property name="Events">0</property>
                 <property name="MemberName" />
+                <property name="Pixbuf">resource:top.bmp</property>
               </widget>
               <packing>
                 <property name="Position">0</property>
@@ -32,14 +28,12 @@
             </child>
             <child>
               <widget class="Gtk.HBox" id="hbox1">
-                <property name="Events">0</property>
                 <property name="MemberName" />
                 <child>
                   <widget class="Gtk.Label" id="label2">
+                    <property name="MemberName" />
                     <property name="LabelProp">GBA ROM File:  </property>
                     <property name="Justify">Center</property>
-                    <property name="Events">0</property>
-                    <property name="MemberName" />
                   </widget>
                   <packing>
                     <property name="Position">0</property>
@@ -50,11 +44,10 @@
                 </child>
                 <child>
                   <widget class="Gtk.Entry" id="entry2">
+                    <property name="MemberName" />
+                    <property name="CanFocus">True</property>
                     <property name="IsEditable">True</property>
                     <property name="InvisibleChar">●</property>
-                    <property name="CanFocus">True</property>
-                    <property name="Events">0</property>
-                    <property name="MemberName" />
                   </widget>
                   <packing>
                     <property name="Position">1</property>
@@ -63,13 +56,12 @@
                 </child>
                 <child>
                   <widget class="Gtk.Button" id="button10">
+                    <property name="MemberName" />
+                    <property name="CanFocus">True</property>
                     <property name="Type">TextOnly</property>
                     <property name="Label">Browse...</property>
                     <property name="UseUnderline">True</property>
                     <property name="IsDialogButton">False</property>
-                    <property name="CanFocus">True</property>
-                    <property name="Events">0</property>
-                    <property name="MemberName" />
                     <signal name="Clicked" handler="OnButton10Clicked" />
                   </widget>
                   <packing>
@@ -89,14 +81,12 @@
             </child>
             <child>
               <widget class="Gtk.VBox" id="vbox4">
-                <property name="Events">0</property>
                 <property name="MemberName" />
                 <child>
                   <widget class="Gtk.Label" id="label3">
-                    <property name="LabelProp">Put a GBA File here.</property>
-                    <property name="Xalign">0.24</property>
-                    <property name="Events">0</property>
                     <property name="MemberName" />
+                    <property name="Xalign">0.24</property>
+                    <property name="LabelProp">Put a GBA File here.</property>
                   </widget>
                   <packing>
                     <property name="Position">0</property>
@@ -107,14 +97,12 @@
                 </child>
                 <child>
                   <widget class="Gtk.HBox" id="hbox2">
-                    <property name="Events">0</property>
                     <property name="MemberName" />
                     <child>
                       <widget class="Gtk.Label" id="label1">
-                        <property name="LabelProp">Output File:     </property>
-                        <property name="Xpad">1</property>
-                        <property name="Events">0</property>
                         <property name="MemberName" />
+                        <property name="Xpad">1</property>
+                        <property name="LabelProp">Output File:     </property>
                       </widget>
                       <packing>
                         <property name="Position">0</property>
@@ -125,11 +113,10 @@
                     </child>
                     <child>
                       <widget class="Gtk.Entry" id="entry1">
+                        <property name="MemberName" />
+                        <property name="CanFocus">True</property>
                         <property name="IsEditable">True</property>
                         <property name="InvisibleChar">●</property>
-                        <property name="CanFocus">True</property>
-                        <property name="Events">0</property>
-                        <property name="MemberName" />
                       </widget>
                       <packing>
                         <property name="Position">1</property>
@@ -139,12 +126,11 @@
                     </child>
                     <child>
                       <widget class="Gtk.Button" id="button3">
+                        <property name="MemberName" />
+                        <property name="CanFocus">True</property>
                         <property name="Type">TextOnly</property>
                         <property name="Label">Browse...</property>
                         <property name="IsDialogButton">False</property>
-                        <property name="CanFocus">True</property>
-                        <property name="Events">0</property>
-                        <property name="MemberName" />
                         <signal name="Clicked" handler="OnButton3Clicked" />
                       </widget>
                       <packing>
@@ -164,15 +150,12 @@
                 </child>
                 <child>
                   <widget class="Gtk.VBox" id="vbox5">
-                    <property name="Events">0</property>
                     <property name="MemberName" />
                     <child>
                       <widget class="Gtk.HBox" id="hbox3">
-                        <property name="Events">0</property>
                         <property name="MemberName" />
                         <child>
                           <widget class="Gtk.DrawingArea" id="drawingarea1">
-                            <property name="Events">0</property>
                             <property name="MemberName" />
                           </widget>
                           <packing>
@@ -188,14 +171,12 @@
                     </child>
                     <child>
                       <widget class="Gtk.HBox" id="hbox4">
-                        <property name="Events">0</property>
                         <property name="MemberName" />
                         <child>
                           <widget class="Gtk.Label" id="label4">
-                            <property name="LabelProp">Game Title:      </property>
-                            <property name="Xpad">1</property>
-                            <property name="Events">0</property>
                             <property name="MemberName" />
+                            <property name="Xpad">1</property>
+                            <property name="LabelProp">Game Title:      </property>
                           </widget>
                           <packing>
                             <property name="Position">0</property>
@@ -206,11 +187,10 @@
                         </child>
                         <child>
                           <widget class="Gtk.Entry" id="entry3">
+                            <property name="MemberName" />
+                            <property name="CanFocus">True</property>
                             <property name="IsEditable">True</property>
                             <property name="InvisibleChar">●</property>
-                            <property name="CanFocus">True</property>
-                            <property name="Events">0</property>
-                            <property name="MemberName" />
                           </widget>
                           <packing>
                             <property name="Position">1</property>
@@ -227,15 +207,13 @@
                     </child>
                     <child>
                       <widget class="Gtk.HBox" id="hbox5">
-                        <property name="Events">0</property>
                         <property name="MemberName" />
                         <child>
                           <widget class="Gtk.Label" id="label5">
+                            <property name="MemberName" />
+                            <property name="Xpad">49</property>
                             <property name="LabelProp" />
                             <property name="Justify">Right</property>
-                            <property name="Xpad">49</property>
-                            <property name="Events">0</property>
-                            <property name="MemberName" />
                           </widget>
                           <packing>
                             <property name="Position">0</property>
@@ -246,11 +224,10 @@
                         </child>
                         <child>
                           <widget class="Gtk.Entry" id="entry4">
+                            <property name="MemberName" />
+                            <property name="CanFocus">True</property>
                             <property name="IsEditable">True</property>
                             <property name="InvisibleChar">●</property>
-                            <property name="CanFocus">True</property>
-                            <property name="Events">0</property>
-                            <property name="MemberName" />
                           </widget>
                           <packing>
                             <property name="Position">1</property>
@@ -286,18 +263,15 @@
         </child>
         <child>
           <widget class="Gtk.VBox" id="vbox6">
-            <property name="Events">0</property>
             <property name="MemberName" />
             <child>
               <widget class="Gtk.HBox" id="hbox6">
-                <property name="Events">0</property>
                 <property name="MemberName" />
                 <child>
                   <widget class="Gtk.Label" id="label6">
-                    <property name="LabelProp" />
-                    <property name="Xpad">49</property>
-                    <property name="Events">0</property>
                     <property name="MemberName" />
+                    <property name="Xpad">49</property>
+                    <property name="LabelProp" />
                   </widget>
                   <packing>
                     <property name="Position">0</property>
@@ -308,11 +282,10 @@
                 </child>
                 <child>
                   <widget class="Gtk.Entry" id="entry5">
+                    <property name="MemberName" />
+                    <property name="CanFocus">True</property>
                     <property name="IsEditable">True</property>
                     <property name="InvisibleChar">●</property>
-                    <property name="CanFocus">True</property>
-                    <property name="Events">0</property>
-                    <property name="MemberName" />
                   </widget>
                   <packing>
                     <property name="Position">1</property>
@@ -330,24 +303,20 @@
             </child>
             <child>
               <widget class="Gtk.VBox" id="vbox9">
-                <property name="Events">0</property>
                 <property name="MemberName" />
                 <child>
                   <widget class="Gtk.HBox" id="hbox7">
-                    <property name="Events">0</property>
                     <property name="MemberName" />
                     <child>
                       <widget class="Gtk.HBox" id="hbox8">
-                        <property name="Events">0</property>
                         <property name="MemberName" />
                         <child>
                           <widget class="Gtk.CheckButton" id="checkbutton1">
+                            <property name="MemberName" />
+                            <property name="CanFocus">True</property>
                             <property name="Label">Use PSRAM</property>
                             <property name="DrawIndicator">True</property>
                             <property name="HasLabel">True</property>
-                            <property name="CanFocus">True</property>
-                            <property name="Events">0</property>
-                            <property name="MemberName" />
                           </widget>
                           <packing>
                             <property name="Position">0</property>
@@ -362,13 +331,12 @@
                     </child>
                     <child>
                       <widget class="Gtk.CheckButton" id="checkbutton2">
+                        <property name="MemberName" />
+                        <property name="CanFocus">True</property>
                         <property name="Label">Save the Whales</property>
                         <property name="Active">True</property>
                         <property name="DrawIndicator">True</property>
                         <property name="HasLabel">True</property>
-                        <property name="CanFocus">True</property>
-                        <property name="Events">0</property>
-                        <property name="MemberName" />
                       </widget>
                       <packing>
                         <property name="Position">1</property>
@@ -393,15 +361,12 @@
             </child>
             <child>
               <widget class="Gtk.VBox" id="vbox8">
-                <property name="Events">0</property>
                 <property name="MemberName" />
                 <child>
                   <widget class="Gtk.VBox" id="vbox10">
-                    <property name="Events">0</property>
                     <property name="MemberName" />
                     <child>
                       <widget class="Gtk.DrawingArea" id="drawingarea6">
-                        <property name="Events">0</property>
                         <property name="MemberName" />
                       </widget>
                       <packing>
@@ -411,11 +376,10 @@
                     </child>
                     <child>
                       <widget class="Gtk.Label" id="label8">
+                        <property name="MemberName" />
                         <property name="LabelProp">&lt;u&gt;Customize NDS...&lt;/u&gt;</property>
                         <property name="UseMarkup">True</property>
                         <property name="UseUnderline">True</property>
-                        <property name="Events">0</property>
-                        <property name="MemberName" />
                       </widget>
                       <packing>
                         <property name="Position">1</property>
@@ -426,17 +390,14 @@
                     </child>
                     <child>
                       <widget class="Gtk.HBox" id="hbox9">
-                        <property name="Events">0</property>
                         <property name="MemberName" />
                         <child>
                           <widget class="Gtk.HBox" id="hbox11">
-                            <property name="Events">0</property>
                             <property name="MemberName" />
                             <child>
                               <widget class="Gtk.Label" id="label9">
-                                <property name="LabelProp">Custom Icon:     </property>
-                                <property name="Events">0</property>
                                 <property name="MemberName" />
+                                <property name="LabelProp">Custom Icon:     </property>
                               </widget>
                               <packing>
                                 <property name="Position">0</property>
@@ -447,11 +408,10 @@
                             </child>
                             <child>
                               <widget class="Gtk.Entry" id="entry6">
+                                <property name="MemberName" />
+                                <property name="CanFocus">True</property>
                                 <property name="IsEditable">True</property>
                                 <property name="InvisibleChar">●</property>
-                                <property name="CanFocus">True</property>
-                                <property name="Events">0</property>
-                                <property name="MemberName" />
                               </widget>
                               <packing>
                                 <property name="Position">1</property>
@@ -460,12 +420,11 @@
                             </child>
                             <child>
                               <widget class="Gtk.Button" id="button12">
+                                <property name="MemberName" />
+                                <property name="CanFocus">True</property>
                                 <property name="Type">TextOnly</property>
                                 <property name="Label">Browse...</property>
                                 <property name="IsDialogButton">False</property>
-                                <property name="CanFocus">True</property>
-                                <property name="Events">0</property>
-                                <property name="MemberName" />
                                 <signal name="Clicked" handler="OnButton12Clicked" />
                               </widget>
                               <packing>
@@ -509,21 +468,17 @@
         </child>
         <child>
           <widget class="Gtk.VBox" id="vbox2">
-            <property name="Events">0</property>
             <property name="MemberName" />
             <child>
               <widget class="Gtk.VBox" id="vbox7">
-                <property name="Events">0</property>
                 <property name="MemberName" />
                 <child>
                   <widget class="Gtk.VBox" id="vbox11">
-                    <property name="Events">0</property>
                     <property name="MemberName" />
                     <child>
                       <widget class="Gtk.Label" id="label11">
-                        <property name="LabelProp">32x32 - 4-bit color (.bmp)</property>
-                        <property name="Events">0</property>
                         <property name="MemberName" />
+                        <property name="LabelProp">32x32 - 4-bit color (.bmp)</property>
                       </widget>
                       <packing>
                         <property name="Position">0</property>
@@ -542,14 +497,12 @@
                 </child>
                 <child>
                   <widget class="Gtk.HBox" id="hbox10">
-                    <property name="Events">0</property>
                     <property name="MemberName" />
                     <child>
                       <widget class="Gtk.Label" id="label10">
+                        <property name="MemberName" />
                         <property name="LabelProp">&lt;s&gt;Custom Border: &lt;/s&gt;</property>
                         <property name="UseMarkup">True</property>
-                        <property name="Events">0</property>
-                        <property name="MemberName" />
                       </widget>
                       <packing>
                         <property name="Position">0</property>
@@ -560,11 +513,10 @@
                     </child>
                     <child>
                       <widget class="Gtk.Entry" id="entry10">
+                        <property name="MemberName" />
+                        <property name="CanFocus">True</property>
                         <property name="IsEditable">False</property>
                         <property name="InvisibleChar">●</property>
-                        <property name="CanFocus">True</property>
-                        <property name="Events">0</property>
-                        <property name="MemberName" />
                       </widget>
                       <packing>
                         <property name="Position">1</property>
@@ -573,12 +525,11 @@
                     </child>
                     <child>
                       <widget class="Gtk.Button" id="button13">
+                        <property name="MemberName" />
+                        <property name="CanFocus">True</property>
                         <property name="Type">TextOnly</property>
                         <property name="Label">Browse...</property>
                         <property name="IsDialogButton">False</property>
-                        <property name="CanFocus">True</property>
-                        <property name="Events">0</property>
-                        <property name="MemberName" />
                       </widget>
                       <packing>
                         <property name="Position">2</property>
@@ -597,10 +548,9 @@
                 </child>
                 <child>
                   <widget class="Gtk.Label" id="label12">
+                    <property name="MemberName" />
                     <property name="LabelProp">&lt;s&gt;256x192, 24-bit color&lt;/s&gt; (currently unsupported)</property>
                     <property name="UseMarkup">True</property>
-                    <property name="Events">0</property>
-                    <property name="MemberName" />
                   </widget>
                   <packing>
                     <property name="Position">2</property>
@@ -619,18 +569,16 @@
             </child>
             <child>
               <widget class="Gtk.HButtonBox" id="hbuttonbox2">
-                <property name="Size">1</property>
-                <property name="Events">0</property>
                 <property name="MemberName" />
+                <property name="Size">1</property>
                 <child>
                   <widget class="Gtk.Button" id="button1">
+                    <property name="MemberName" />
+                    <property name="CanFocus">True</property>
                     <property name="UseStock">True</property>
                     <property name="Type">StockItem</property>
                     <property name="StockId">gtk-ok</property>
                     <property name="IsDialogButton">False</property>
-                    <property name="CanFocus">True</property>
-                    <property name="Events">0</property>
-                    <property name="MemberName" />
                     <signal name="Clicked" handler="OnButton1Clicked" />
                     <property name="label">gtk-ok</property>
                   </widget>
