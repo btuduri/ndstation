@@ -24,15 +24,50 @@ output_entry = Gtk::Entry.new
 output_file = Gtk::FileChooserButton.new("Output Folder", Gtk::FileChooser::ACTION_SELECT_FOLDER)
 
 #  Added a filefilter to filter out all files except .gba -dg10050
+filter_text_compatible = Gtk::FileFilter.new
+filter_text_compatible.set_name("Compatible files");
+filter_text_compatible.add_pattern("*gba");
+filter_text_compatible.add_pattern("*7z");
+filter_text_compatible.add_pattern("*rar");
+filter_text_compatible.add_pattern("*zip");
+filter_text_compatible.add_pattern("*tar.gz");
+filter_text_compatible.add_pattern("*tar.bz2");
+gba_file.add_filter(filter_text_compatible);
+
 filter_text_gba = Gtk::FileFilter.new
 filter_text_gba.set_name("GBA files");
 filter_text_gba.add_pattern("*gba");
 gba_file.add_filter(filter_text_gba);
 
+filter_text_compressed = Gtk::FileFilter.new
+filter_text_compressed.set_name("Compressed files");
+filter_text_compressed.add_pattern("*7z");
+filter_text_compressed.add_pattern("*rar");
+filter_text_compressed.add_pattern("*zip");
+filter_text_compressed.add_pattern("*tar.gz");
+filter_text_compressed.add_pattern("*tar.bz2");
+gba_file.add_filter(filter_text_compressed);
+
 filter_text_7z = Gtk::FileFilter.new
 filter_text_7z.set_name("7zip files");
 filter_text_7z.add_pattern("*7z");
 gba_file.add_filter(filter_text_7z);
+
+filter_text_rar = Gtk::FileFilter.new
+filter_text_rar.set_name("RAR files");
+filter_text_rar.add_pattern("*rar");
+gba_file.add_filter(filter_text_rar);
+
+filter_text_zip = Gtk::FileFilter.new
+filter_text_zip.set_name("ZIP files");
+filter_text_zip.add_pattern("*zip");
+gba_file.add_filter(filter_text_zip);
+
+filter_text_tar = Gtk::FileFilter.new
+filter_text_tar.set_name("TAR (gzipped or bzipped) files");
+filter_text_tar.add_pattern("*tar.gz");
+filter_text_tar.add_pattern("*tar.bz2");
+gba_file.add_filter(filter_text_tar);
 
 #gba_file.ok_button.signal_connect("clicked") do
 #  puts "File: #{gba_file.filename}"
