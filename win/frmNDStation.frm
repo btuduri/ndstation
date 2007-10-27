@@ -4,26 +4,21 @@ Begin VB.Form frmNDStation
    AutoRedraw      =   -1  'True
    BorderStyle     =   1  'Fixed Single
    Caption         =   "NDStation v1.3"
-   ClientHeight    =   8055
+   ClientHeight    =   7935
    ClientLeft      =   45
    ClientTop       =   450
    ClientWidth     =   7335
    Icon            =   "frmNDStation.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
-   ScaleHeight     =   8055
+   ScaleHeight     =   7935
    ScaleWidth      =   7335
    StartUpPosition =   3  'Windows Default
-   Begin VB.Timer tmrForceFocus 
-      Interval        =   200
-      Left            =   60
-      Top             =   7860
-   End
    Begin ComctlLib.ListView lvwBatch 
       Height          =   1935
       Left            =   120
       TabIndex        =   14
-      Top             =   5460
+      Top             =   5280
       Width           =   7095
       _ExtentX        =   12515
       _ExtentY        =   3413
@@ -114,7 +109,7 @@ Begin VB.Form frmNDStation
       Height          =   375
       Left            =   5880
       TabIndex        =   19
-      Top             =   7440
+      Top             =   7320
       Width           =   1215
    End
    Begin VB.CommandButton cmdBorder 
@@ -131,7 +126,7 @@ Begin VB.Form frmNDStation
       Height          =   255
       Left            =   5760
       TabIndex        =   12
-      Top             =   3960
+      Top             =   3780
       Width           =   1215
    End
    Begin VB.CommandButton cmdIcon 
@@ -148,7 +143,7 @@ Begin VB.Form frmNDStation
       Height          =   255
       Left            =   5760
       TabIndex        =   11
-      Top             =   3480
+      Top             =   3300
       Width           =   1215
    End
    Begin VB.CommandButton cmdSplash 
@@ -165,7 +160,7 @@ Begin VB.Form frmNDStation
       Height          =   255
       Left            =   5760
       TabIndex        =   13
-      Top             =   4440
+      Top             =   4260
       Width           =   1215
    End
    Begin VB.CommandButton cmdRun 
@@ -182,7 +177,7 @@ Begin VB.Form frmNDStation
       Height          =   375
       Left            =   4200
       TabIndex        =   18
-      Top             =   7440
+      Top             =   7320
       Width           =   1215
    End
    Begin VB.CommandButton cmdClear 
@@ -199,7 +194,7 @@ Begin VB.Form frmNDStation
       Height          =   375
       Left            =   2880
       TabIndex        =   17
-      Top             =   7440
+      Top             =   7320
       Width           =   1215
    End
    Begin VB.CommandButton cmdDelete 
@@ -216,7 +211,7 @@ Begin VB.Form frmNDStation
       Height          =   375
       Left            =   1560
       TabIndex        =   16
-      Top             =   7440
+      Top             =   7320
       Width           =   1215
    End
    Begin VB.CommandButton cmdAdd 
@@ -233,26 +228,46 @@ Begin VB.Form frmNDStation
       Height          =   375
       Left            =   240
       TabIndex        =   15
-      Top             =   7440
+      Top             =   7320
       Width           =   1215
    End
    Begin VB.CheckBox chkCompression 
+      Caption         =   "Use Compression"
+      BeginProperty Font 
+         Name            =   "Arial"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   255
-      Left            =   4080
+      Left            =   1980
       TabIndex        =   9
       ToolTipText     =   "Compresses the ROM to get smaller filesizes at the expense of loading time"
-      Top             =   2820
+      Top             =   2640
       Value           =   1  'Checked
-      Width           =   255
+      Width           =   1515
    End
    Begin VB.CheckBox chkPSRAM 
+      Caption         =   "Use PSRAM"
+      BeginProperty Font 
+         Name            =   "Arial"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
       Height          =   255
-      Left            =   1440
+      Left            =   240
       TabIndex        =   8
       ToolTipText     =   "PSRAM loads faster, but needs to be written every time"
-      Top             =   2820
+      Top             =   2640
       Value           =   1  'Checked
-      Width           =   255
+      Width           =   1215
    End
    Begin VB.CommandButton cmdOutput 
       Caption         =   "Select..."
@@ -289,7 +304,7 @@ Begin VB.Form frmNDStation
       Width           =   1215
    End
    Begin VB.Frame fraGame 
-      Height          =   1215
+      Height          =   1035
       Left            =   120
       TabIndex        =   0
       Top             =   120
@@ -345,7 +360,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   210
          Left            =   120
-         TabIndex        =   33
+         TabIndex        =   31
          Top             =   240
          Width           =   1065
       End
@@ -365,7 +380,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   210
          Left            =   120
-         TabIndex        =   32
+         TabIndex        =   30
          Top             =   660
          Width           =   1020
       End
@@ -374,8 +389,29 @@ Begin VB.Form frmNDStation
       Height          =   1815
       Left            =   120
       TabIndex        =   20
-      Top             =   1380
+      Top             =   1200
       Width           =   7095
+      Begin VB.ComboBox cmbDevice 
+         Appearance      =   0  'Flat
+         BeginProperty Font 
+            Name            =   "Arial"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         Height          =   330
+         ItemData        =   "frmNDStation.frx":08CA
+         Left            =   4500
+         List            =   "frmNDStation.frx":08D4
+         Style           =   2  'Dropdown List
+         TabIndex        =   35
+         ToolTipText     =   "Choose which Slot 2 device the resulting NDS will write to"
+         Top             =   1380
+         Width           =   2355
+      End
       Begin VB.TextBox txtTitle 
          BeginProperty Font 
             Name            =   "Arial"
@@ -391,7 +427,7 @@ Begin VB.Form frmNDStation
          Left            =   1320
          TabIndex        =   7
          Top             =   960
-         Width           =   4215
+         Width           =   5475
       End
       Begin VB.TextBox txtTitle 
          BeginProperty Font 
@@ -408,7 +444,7 @@ Begin VB.Form frmNDStation
          Left            =   1320
          TabIndex        =   6
          Top             =   600
-         Width           =   4215
+         Width           =   5475
       End
       Begin VB.TextBox txtTitle 
          BeginProperty Font 
@@ -425,13 +461,13 @@ Begin VB.Form frmNDStation
          Left            =   1320
          TabIndex        =   5
          Top             =   240
-         Width           =   4215
+         Width           =   5475
       End
-      Begin VB.Label lblCompression 
+      Begin VB.Label Label1 
          AutoSize        =   -1  'True
          BackColor       =   &H00E0E000&
          BackStyle       =   0  'Transparent
-         Caption         =   "Use Compression:"
+         Caption         =   "Device:"
          BeginProperty Font 
             Name            =   "Arial"
             Size            =   8.25
@@ -442,30 +478,10 @@ Begin VB.Form frmNDStation
             Strikethrough   =   0   'False
          EndProperty
          Height          =   210
-         Left            =   2400
-         TabIndex        =   23
+         Left            =   3780
+         TabIndex        =   34
          Top             =   1440
-         Width           =   1320
-      End
-      Begin VB.Label lblPSRAM 
-         AutoSize        =   -1  'True
-         BackColor       =   &H00E0E000&
-         BackStyle       =   0  'Transparent
-         Caption         =   "Use PSRAM:"
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   8.25
-            Charset         =   0
-            Weight          =   400
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         Height          =   210
-         Left            =   120
-         TabIndex        =   22
-         Top             =   1440
-         Width           =   915
+         Width           =   540
       End
       Begin VB.Label lblTitle 
          AutoSize        =   -1  'True
@@ -491,8 +507,8 @@ Begin VB.Form frmNDStation
    Begin VB.Frame fraCustomize 
       Height          =   2115
       Left            =   120
-      TabIndex        =   24
-      Top             =   3240
+      TabIndex        =   22
+      Top             =   3060
       Width           =   7095
       Begin VB.TextBox txtSplash 
          BeginProperty Font 
@@ -507,7 +523,7 @@ Begin VB.Form frmNDStation
          Height          =   285
          Left            =   1320
          OLEDropMode     =   1  'Manual
-         TabIndex        =   35
+         TabIndex        =   33
          Top             =   1200
          Width           =   4215
       End
@@ -524,7 +540,7 @@ Begin VB.Form frmNDStation
          Height          =   285
          Left            =   1320
          OLEDropMode     =   1  'Manual
-         TabIndex        =   34
+         TabIndex        =   32
          Top             =   720
          Width           =   4215
       End
@@ -562,7 +578,7 @@ Begin VB.Form frmNDStation
          ForeColor       =   &H00000000&
          Height          =   210
          Left            =   120
-         TabIndex        =   31
+         TabIndex        =   29
          Top             =   1320
          Width           =   540
       End
@@ -582,7 +598,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   180
          Left            =   1440
-         TabIndex        =   30
+         TabIndex        =   28
          Top             =   1500
          Width           =   2280
       End
@@ -603,7 +619,7 @@ Begin VB.Form frmNDStation
          ForeColor       =   &H00000000&
          Height          =   210
          Left            =   120
-         TabIndex        =   29
+         TabIndex        =   27
          Top             =   300
          Width           =   345
       End
@@ -624,7 +640,7 @@ Begin VB.Form frmNDStation
          ForeColor       =   &H00000000&
          Height          =   210
          Left            =   120
-         TabIndex        =   28
+         TabIndex        =   26
          Top             =   780
          Width           =   540
       End
@@ -644,7 +660,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   180
          Left            =   1440
-         TabIndex        =   27
+         TabIndex        =   25
          Top             =   540
          Width           =   2745
       End
@@ -664,7 +680,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   180
          Left            =   1440
-         TabIndex        =   26
+         TabIndex        =   24
          Top             =   1020
          Width           =   2745
       End
@@ -684,7 +700,7 @@ Begin VB.Form frmNDStation
          EndProperty
          Height          =   180
          Left            =   120
-         TabIndex        =   25
+         TabIndex        =   23
          Top             =   1860
          Width           =   6795
       End
@@ -732,7 +748,7 @@ Private Declare Function InitCommonControlsEx Lib "comctl32.dll" _
    (iccex As tagInitCommonControlsEx) As Boolean
 Private Const ICC_USEREX_CLASSES = &H200
 
-Dim binDirectory As String, subformShowing As Boolean
+Dim binDirectory As String
 
 
 ' Initialization and unloading stuff
@@ -749,24 +765,16 @@ End Sub
 
 Private Sub Form_Load()
     binDirectory = Environ("temp") & "\NDStation"
-    Call clearTemp
-    Call clearEXE
-    Call unpackEXE
+    Call clearTemp(binDirectory)
+    Call clearEXE(binDirectory)
+    Call unpackEXE(binDirectory)
     chkPSRAM.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "PSRAM", "1"))
     chkCompression.Value = CInt(ReadIniValue(App.path & "\NDStation.ini", "Settings", "Compression", "1"))
 End Sub
 
-Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
-    If subformShowing Then Cancel = 1
-End Sub
-
 Private Sub Form_Terminate()
-    Call clearTemp
-    Call clearEXE
-End Sub
-
-Private Sub tmrForceFocus_Timer()
-    If subformShowing Then frmProcessing.SetFocus
+    Call clearTemp(binDirectory)
+    Call clearEXE(binDirectory)
 End Sub
 
 ' Control event handling, sorted by tab index
@@ -925,31 +933,8 @@ Private Sub cmdDelete_Click()
 End Sub
 
 Private Sub cmdRun_Click()
-    Dim i As Integer, progressOriginal As Integer
-    'Remember how many items were in the ListView at the start
-    progressOriginal = lvwBatch.ListItems.Count
-    If progressOriginal > 0 Then
-        'Load the processing form
-        frmProcessing.Show
-        subformShowing = True
-        'Set i equal to the number of items in the ListView
-        For i = lvwBatch.ListItems.Count To 1 Step -1
-            'Make the progress bar update... Current amount of items divided by original amount, all multiplied by 100
-            frmProcessing.pbrTotal.Value = 100 - ((i / progressOriginal) * 100)
-            'Update game name on processing form
-            frmProcessing.lblFile.Caption = basename(lvwBatch.ListItems(i).Text)
-            'Process the elements of row i in the ListView
-            Call processGame(lvwBatch.ListItems(i).Text, lvwBatch.ListItems(i).SubItems(1), lvwBatch.ListItems(i).SubItems(2), lvwBatch.ListItems(i).SubItems(3), lvwBatch.ListItems(i).SubItems(4), lvwBatch.ListItems(i).SubItems(5), lvwBatch.ListItems(i).SubItems(6), lvwBatch.ListItems(i).SubItems(7))
-            'Delete row i
-            lvwBatch.ListItems.Remove (i)
-            'Subtract 1 from i and repeat until i = 1 at this step
-        Next
-        frmProcessing.pbrTotal.Value = 100
-        MsgBox "Conversion complete!", , "NDStation"
-        frmProcessing.pbrTotal.Value = 0
-        frmProcessing.Hide
-        subformShowing = False
-    End If
+    'If the queue has items, load the processing form and hand off all control for a while
+    If lvwBatch.ListItems.Count > 0 Then Call frmProcessing.Show(vbModal, frmNDStation)
 End Sub
 
 Private Sub cmdClear_Click()
@@ -968,143 +953,10 @@ Private Sub cmdAbout_Click()
     End If
 End Sub
 
-
-'The processing code
-Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As String, _
-                    usePSRAM As Boolean, useCompression As Boolean, _
-                    iconFile As String, borderFile As String, splashFile As String)
-
-    Dim output As String
-    
-    'Output file
-    output = outputFolder & basename(gbaFile, ".gba") & ".nds"
-    
-    'Handle the scenario of the output file already existing
-    If file_exists(output) Then Call unlink(output)
-    
-    'Changing working directory
-    ChDrive Left(binDirectory, 2)
-    ChDir binDirectory
-    
-    'GBA ROM handling
-    If useCompression Then
-        frmProcessing.lblStep.Caption = "Compressing ROM..."
-        Call compressNSAR(gbaFile, binDirectory & "\data\game.nsar")
-    Else
-        frmProcessing.lblStep.Caption = "Copying ROM to temp directory..."
-        Call copy(gbaFile, binDirectory & "\data\game.gba")
-    End If
-    
-    'Border handling
-    If borderFile <> "0" Then
-        frmProcessing.lblStep.Caption = "Converting border image..."
-        Call copy(borderFile, binDirectory & "\border.bmp")
-        Call ShellandWait(binDirectory & "\grit.exe border.bmp -gB16 -gT! -gzl -fh! -ftbin")
-        Call rename(binDirectory & "\border.img.bin", binDirectory & "\data\border.lz7")
-    End If
-    
-    'Splash handling
-    If splashFile <> "0" Then
-        frmProcessing.lblStep.Caption = "Converting splash image..."
-        Call copy(splashFile, binDirectory & "\splash.bmp")
-        Call ShellandWait(binDirectory & "\grit.exe splash.bmp -gB16 -gT! -gzl -fh! -ftbin")
-        Call rename(binDirectory & "\splash.img.bin", binDirectory & "\data\splash.lz7")
-    End If
-    
-    'Icon handling
-    Call copy(iconFile, binDirectory & "\icon.bmp")
-    
-    'Modefile handling
-    frmProcessing.lblStep.Caption = "Creating configuration file..."
-    Dim modefile As Integer, hasBorder As Boolean, hasSplash As Boolean
-    If borderFile = "0" Then hasBorder = False Else hasBorder = True
-    If splashFile = "0" Then hasSplash = False Else hasSplash = True
-    modefile = fopen(binDirectory & "\data\mode.cfg")
-    Call fwrite(modefile, makeConfig(useCompression, usePSRAM, hasSplash, hasBorder))
-    Call fclose(modefile)
-    
-    'Compiling the NDS file
-    frmProcessing.lblStep.Caption = "Compiling NDS file..."
-    Call ShellandWait(binDirectory & "\ndstool.exe -c x.nds -7 7.bin -9 9.bin -d data -g ""NDST"" ""13"" ""NDStation"" -b icon.bmp """ & gameTitle & """")
-    Call EFS_patch(binDirectory & "\x.nds")
-    
-    'Moving the NDS to its final destination
-    frmProcessing.lblStep.Caption = "Copying to destination..."
-    Call rename(binDirectory & "\x.nds", output)
-    
-    'Deleting the temporary files
-    frmProcessing.lblStep.Caption = "Cleaning up temporary files..."
-    Call clearTemp
-   
-    frmProcessing.lblStep.Caption = "Done!"
-End Sub
-
-
-'Misc functions
-Private Sub clearTemp()
-    On Error Resume Next
-    Call unlink(binDirectory & "\x.nds")
-    Call unlink(binDirectory & "\border.bmp")
-    Call unlink(binDirectory & "\border.img.bin")
-    Call unlink(binDirectory & "\splash.bmp")
-    Call unlink(binDirectory & "\splash.img.bin")
-    Call unlink(binDirectory & "\icon.bmp")
-    Call unlink(binDirectory & "\data\mode.cfg")
-    Call unlink(binDirectory & "\data\game.gba")
-    Call unlink(binDirectory & "\data\game.nsar")
-    Call unlink(binDirectory & "\data\border.lz7")
-    Call unlink(binDirectory & "\data\splash.lz7")
-End Sub
-
-Private Sub clearEXE()
-    On Error Resume Next
-    Call unlink(binDirectory & "\grit.exe")
-    Call unlink(binDirectory & "\gzip.exe")
-    Call unlink(binDirectory & "\ndstool.exe")
-    Call unlink(binDirectory & "\freeimage.dll")
-    Call unlink(binDirectory & "\gbacrusher.exe")
-    Call unlink(binDirectory & "\7.bin")
-    Call unlink(binDirectory & "\9.bin")
-    Call unlink(binDirectory & "\gfx\splash.bmp")
-    Call unlink(binDirectory & "\gfx\border.bmp")
-    Call unlink(binDirectory & "\gfx\icon.bmp")
-    Call RmDir(binDirectory & "\data")
-    Call RmDir(binDirectory & "\gfx")
-    Call RmDir(binDirectory & "\lzss")
-    Call RmDir(binDirectory)
-End Sub
-
-Private Sub unpackEXE()
-    On Error Resume Next
-    Call MkDir(binDirectory)
-    Call MkDir(binDirectory & "\data")
-    Call MkDir(binDirectory & "\gfx")
-    Call MkDir(binDirectory & "\lzss")
-    Call extractRes("exe", "grit", binDirectory & "\grit.exe")
-    Call extractRes("exe", "ndstool", binDirectory & "\ndstool.exe")
-    Call extractRes("exe", "freeimage", binDirectory & "\freeimage.dll")
-    Call extractRes("exe", "gbacrusher", binDirectory & "\gbacrusher.exe")
-    Call extractRes("bmp", "icon", binDirectory & "\gfx\icon.bmp")
-    Call extractRes("bin", "arm7", binDirectory & "\7.bin")
-    Call extractRes("bin", "arm9", binDirectory & "\9.bin")
-End Sub
-
 Private Function isFileType(filename As String, extension As String) As Boolean
     On Error Resume Next
     isFileType = False
     If LCase(Right(filename, Len(extension) + 1)) = "." & extension Then isFileType = True
 End Function
 
-Private Function makeConfig(usesNSAR As Boolean, usesPSRAM As Boolean, _
-                            hasSplash As Boolean, hasBorder As Boolean) As String
-    Dim config As Integer
-    
-    If usesNSAR Then config = config + 1
-    If usesPSRAM Then config = config + 2
-    If hasSplash Then config = config + 4
-    If hasBorder Then config = config + 8
-    
-    makeConfig = Chr(config)
-    
-End Function
 

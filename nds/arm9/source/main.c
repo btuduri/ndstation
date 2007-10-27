@@ -1,3 +1,22 @@
+/*
+NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2007 Chaz Schlarp
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include <nds.h>
 #include <stdio.h>
 #include <fat.h>
@@ -14,8 +33,8 @@ int main(void) {
 	irqEnable(IRQ_VBLANK);
 	
 	scanKeys();
-	if(keysDown() & KEY_START){
-		// if the START button is depressed, we enter console mode
+	if(keysDown() & KEY_R){
+		// if the R button is depressed, we enter console mode
 		videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
 		vramSetBankA(VRAM_A_MAIN_BG);
 		BG0_CR = BG_MAP_BASE(31);

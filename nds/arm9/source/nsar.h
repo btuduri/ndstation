@@ -17,8 +17,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-int getSize(uint8 * source, uint16 * dest, uint32 r2);
-uint8 readByte(uint8 * source);
-void decompressToVRAM(const void* source, void* dest);
-void loadBorder(void);
-void loadSplash(void);
+#define CHUNK_SIZE 131072
+
+typedef struct {
+    u32   chunks_left;
+    EFS_FILE* nsar_handle;
+} NSAR_FILE;
+
+void NSAR_open(NSAR_FILE* nsar, char* filename);
+void NSAR_nextChunk(char* decomp_data, NSAR_FILE* nsar);
