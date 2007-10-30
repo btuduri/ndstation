@@ -18,9 +18,11 @@ class NDSTWindow < Gtk::Window
     
     @gba_file_entry = Gtk::Entry.new  
     @output_folder_entry = Gtk::Entry.new
+   
     @rom_title_1 = Gtk::Entry.new
     @rom_title_2 = Gtk::Entry.new
     @rom_title_3 = Gtk::Entry.new
+    
     @icon_entry = Gtk::Entry.new
     @splash_entry = Gtk::Entry.new
     @border_entry = Gtk::Entry.new
@@ -31,15 +33,24 @@ class NDSTWindow < Gtk::Window
     @gba_file = Gtk::FileChooserButton.new("GBA File", Gtk::FileChooser::ACTION_OPEN)
     filter_gba = Gtk::FileFilter.new.set_name("Compatible").add_pattern("*gba")
     @gba_file.add_filter(filter_gba)
+    @gba_file.signal_connect("selection-changed") {@gba_file_entry.text=(@gba_file.filename)}
 
     @output_folder = Gtk::FileChooserButton.new("Ouput Folder",
                                                 Gtk::FileChooser::ACTION_SELECT_FOLDER)
+    @output_folder.signal_connect("current-folder-changed") { @output_folder_entry.text=(@output_folder.current_folder)}
     
     @icon_file = Gtk::FileChooserButton.new("Icon File", Gtk::FileChooser::ACTION_OPEN)
+    @icon_file.signal_connect("selection-changed") {@icon_entry.text=(@icon_file.filename)}
+
     @splash_file = Gtk::FileChooserButton.new("Splash File", Gtk::FileChooser::ACTION_OPEN)
-    @border_file = Gtk::FileChooserButton.new("Border File", Gtk::FileChooser::ACTION_OPEN)
+    @splash_file.signal_connect("selection-changed") {@splash_entry.text=(@splash_file.filename)}
     
-    patch_button = Gtk::Button.new("Patch") { }
+    @border_file = Gtk::FileChooserButton.new("Border File", Gtk::FileChooser::ACTION_OPEN)
+    @border_file.signal_connect("selection-changed") {@border_entry.text=(@border_file.filename)}
+
+    patch_button = Gtk::Button.new("Patch")
+    patch_button.signal_connect("clicked") {puts "#{@gba_file.filename} #{@gba_file_entry.text}"}
+    
     patch_hbox = Gtk::HBox.new
     patch_hbox.add(patch_button)
     
