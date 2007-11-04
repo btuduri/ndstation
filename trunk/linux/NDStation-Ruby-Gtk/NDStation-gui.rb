@@ -24,7 +24,7 @@ class NDSTWindow < Gtk::Window
     #system calls external command, if it exits > 0, system returns false
     if #{@gba_file_entry.text.size} < 16000000
         rom_title = "#{@rom_title_1.text};#{@rom_title_2.text};#{@rom_title_3.text}"
-      if system("./ndstool -c file.nds -7 7.bin -9 9.bin -d data -g 'NDST' -b #{@icon_entry.text} #{rom_title}") and system("/efs file.nds")
+      if system("./ndstool -c file.nds -7 7.bin -9 9.bin -d data -g 'NDST' -b #{@icon_entry.text} #{rom_title}") and system("./efs file.nds")
         Dialog.new("Patching complete", "Patching is Complete")
       else
         Dialog.new("Patching Failed", "Failed to Patch File")
