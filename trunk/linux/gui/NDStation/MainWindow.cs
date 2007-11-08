@@ -88,6 +88,14 @@ public class MainWindow: Gtk.Window
         StreamWriter swicon = new StreamWriter("/tmp/ndstation-tmp/icon");
         swicon.Write(entry6.Text);
         swicon.Close();
+        
+        //Sample for executing commands
+        //System.Diagnostics.Process proc = new System.Diagnostics.Process();
+		//proc.EnableRaisingEvents=false; 
+		//proc.StartInfo.FileName = "xterm";
+		//proc.StartInfo.Arguments = "";
+		//proc.Start();
+		//proc.WaitForExit();
 //System.IO.Directory.Delete;
 
  
