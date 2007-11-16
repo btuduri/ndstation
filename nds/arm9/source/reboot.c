@@ -25,5 +25,5 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 void bootGBA(void){
 	iprintf("Starting execution.\n");
 	sysSetBusOwners(BUS_OWNER_ARM7,BUS_OWNER_ARM7);
-	IPC_ARM9=IPC_GBA_BOOT;
+	IPC_ARM9 = IPC_GBA_BOOT;
 }

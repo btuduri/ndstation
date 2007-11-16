@@ -21,6 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <stdio.h>
 #include <fat.h>
 
+#include "config.h"
 #include "efs_lib.h"
 #include "flash.h"
 #include "graphics.h"
@@ -33,7 +34,7 @@ int main(void) {
 	irqEnable(IRQ_VBLANK);
 	
 	scanKeys();
-	if(keysDown() & KEY_R){
+	if((keysDown() & KEY_R) || !config_file(CONFIG_SPLASH_ENABLED)){
 		// if the R button is depressed, we enter console mode
 		videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
 		vramSetBankA(VRAM_A_MAIN_BG);
@@ -56,7 +57,7 @@ int main(void) {
 	}
 
 	// lazy way to handle the firmware's GBA screen setting
-	if(PersonalData->_user_data.gbaScreen) lcdSwap();
+	if(PersonalData->_user_data.gbaScreen) lcdMainOnBottom();
 
 	if(fatInitDefault()) {
 		iprintf("Survived FAT init.\n");
@@ -71,9 +72,9 @@ int main(void) {
 			// write save to 3in1
 			readSAV();
 
-			if(isPSRAM("/mode.txt")){
+			if(config_file(CONFIG_PSRAM_ENABLED)){
 				// using PSRAM...
-				if(isGZ("/mode.txt")){
+				if(config_file(CONFIG_NSAR_ENABLED)){
 					copyToCard("/game.gz", "/game.gz");
 					uncompressToCard("/game.gz", "/game.gba");
 					writeToPSRAM("/game.gba", FAT_size("/game.gba"), 1);
@@ -82,7 +83,7 @@ int main(void) {
 				}
 			} else {
 				// using NOR...
-				if(isGZ("/mode.txt")){
+				if(config_file(CONFIG_NSAR_ENABLED)){
 					copyToCard("/game.gz", "/game.gz");
 					uncompressToCard("/game.gz", "/game.gba");
 					writeToNOR("/game.gba", FAT_size("/game.gba"), 1);
@@ -98,7 +99,7 @@ int main(void) {
 			remove("/game.gba");
 
 			// load the border and reset to GBA mode
-			loadBorder();
+			loadBorder(config_file(CONFIG_BORDER_ENABLED));
 			bootGBA();
 
 		} else {

@@ -128,7 +128,8 @@ int main(int argc, char ** argv) {
 //---------------------------------------------------------------------------------
 
 	// read User Settings from firmware
-	readUserSettings();
+	//readUserSettings();
+	// what the fuck, wintermute - this fubars PersonalData->_user_data.gbaScreen for some reason
 
 	//enable sound
 	powerON(POWER_SOUND);
@@ -146,20 +147,20 @@ int main(int argc, char ** argv) {
 
 	irqEnable( IRQ_VBLANK | IRQ_VCOUNT);
 
-IPC_ARM9=-1;
-	
+	IPC_ARM9=-1;
+
 	if(PersonalData->_user_data.gbaScreen)
 		writePM((1*0x04) | 0x01);
 	else
 		writePM((1*0x08) | 0x01);
-	
-	
+
+
 	u32 i = 0;
-	
+
 	// keep looking for when the ARM9 wants to go into GBA mode
 	while(1) {
 		swiWaitForVBlank();
-		
+
 		i=IPC_ARM9;
 		if(i!=-1) {
 			IPC_ARM9=-1;
