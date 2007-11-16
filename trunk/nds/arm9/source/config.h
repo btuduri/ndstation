@@ -16,3 +16,12 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+
+#define CONFIG_NSAR_ENABLED    1
+#define CONFIG_PSRAM_ENABLED   2
+#define CONFIG_DEVICE_TYPE     3
+
+#define CONFIG_BORDER_ENABLED  4
+#define CONFIG_SPLASH_ENABLED  5
+
+bool config_file(int key);

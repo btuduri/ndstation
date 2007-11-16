@@ -82,7 +82,7 @@ void loadSplash(void) {
 
 }
 
-void loadBorder(void) {
+void loadBorder(bool useBorder) {
 
 	// load the border used in GBA mode
 
@@ -97,20 +97,29 @@ void loadBorder(void) {
 	BG3_CX = 0;
 	BG3_CY = 0;
 
-	EFS_FILE* borderFile;
-	int fileSize = EFS_size("/border.lz7");
+	if(useBorder){
+		EFS_FILE* borderFile;
+		int fileSize = EFS_size("/border.lz7");
 
-	char* borderData = malloc(fileSize);
-	memset(borderData, 0, fileSize);
+		char* borderData = malloc(fileSize);
+		memset(borderData, 0, fileSize);
 
-	borderFile = EFS_fopen("/border.lz7");
+		borderFile = EFS_fopen("/border.lz7");
 
-	EFS_fread(borderData, 1, fileSize, borderFile);
-	EFS_fclose(borderFile);
+		EFS_fread(borderData, 1, fileSize, borderFile);
+		EFS_fclose(borderFile);
 
-	decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(0));
-	decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(8));
+		decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(0));
+		decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(8));
 
-	free(borderData);
+		free(borderData);
+	} else {
+		uint16* vram = (uint16*)BG_BMP_RAM(0);
+		int z = 0;
+	    for(z=0; z<(256*192); z++)
+	    {
+	        vram[z] = 0;
+	    }
+	}
 
 }		

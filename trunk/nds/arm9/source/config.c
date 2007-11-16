@@ -16,3 +16,30 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+
+#include <nds.h>
+
+#include "config.h"
+#include "iniparser.h"
+
+bool config_file(int key){
+	dictionary* iniFile = iniparser_new("/config.ini");
+	switch(key)
+	{
+		case 1: // NSAR enabled?
+			return iniparser_getboolean(iniFile, "mode:nsar", 0);
+			break;
+		case 2: // PSRAM enabled?
+			return iniparser_getboolean(iniFile, "mode:psram", 0);
+			break;
+		case 3: // Device type?
+			break;
+		case 4: // Border enabled?
+			return iniparser_getboolean(iniFile, "graphics:border", 0);
+			break;
+		case 5: // Splash enabled?
+			return iniparser_getboolean(iniFile, "graphics:splash", 0);
+			break;
+	}
+	return false;
+}
