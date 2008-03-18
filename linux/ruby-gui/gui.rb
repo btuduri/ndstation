@@ -45,7 +45,8 @@ class NDStationWindow < Gtk::Window
     @treeview.selection.mode = Gtk::SELECTION_SINGLE
     @treeview.rules_hint = true
 
-    #create text renderer, pack it into 'name' column, it grabs file names from rom[0]
+    #create text renderer, pack it into 'name' column, it grabs
+    #file names from rom[0]
     name_rend = Gtk::CellRendererText.new
     name_column = Gtk::TreeViewColumn.new("Name", name_rend, :text => 0)
     name_column.max_width=(250)
@@ -65,20 +66,26 @@ class NDStationWindow < Gtk::Window
     scrolled_roms.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC)
     scrolled_roms.add(@treeview)
 
-    #create text view for log
-    @log_buffer = Gtk::TextBuffer.new
-    log_text = Gtk::TextView.new(@log_buffer)
-    log_text.cursor_visible=(false)
-    log_text.set_editable(false)
-    log_text.set_size_request(200, 200)
+    #create title entry and pack it
+    @title = Gtk::Entry.new
+    hbox_title = Gtk::HBox.new
+    hbox_title.pack_start(Gtk::Label.new("Title:"), false, true, 35)\
+    .pack_start(@title, true, true, 10)
 
-    #create notebook to store different pages
-    notebook = Gtk::Notebook.new
-    notebook.homogeneous=(true)
-    notebook.append_page(scrolled_roms).append_page(log_text)
-    notebook.set_tab_label(scrolled_roms, Gtk::Label.new("Roms"))
-    notebook.set_tab_label(log_text, Gtk::Label.new("Log"))
 
+    #create and pack icon file selection button
+    @icon_file = Gtk::FileChooserButton.new("Icon File", Gtk::FileChooser::ACTION_OPEN)
+    @icon_file.current_folder = @home
+
+    #restrict files to bmp
+    @icon_file.add_filter(Gtk::FileFilter.new.set_name("*.bmp").add_pattern("*.gba"))
+    @icon_file.add_filter(Gtk::FileFilter.new.set_name("All Files").add_pattern("*"))
+
+    hbox_icon_file = Gtk::HBox.new
+    hbox_icon_file.pack_start(Gtk::Label.new("Icon File:"), false, true, 25)\
+    .pack_start(@icon_file, true, true, 10)
+
+    #create and pack input folder selection button
     @in_folder = Gtk::FileChooserButton.new("Input Folder", Gtk::FileChooser::ACTION_SELECT_FOLDER)
     @in_folder.current_folder = @home
     @in_folder.signal_connect("current-folder-changed") {load_roms}
@@ -87,10 +94,10 @@ class NDStationWindow < Gtk::Window
     hbox_in_folder.pack_start(Gtk::Label.new("Input Folder:"), false, true, 15)\
     .pack_start(@in_folder, true, true, 10)
 
+    #create and pack output folder selection button
     @out_folder = Gtk::FileChooserButton.new("Folder", Gtk::FileChooser::ACTION_SELECT_FOLDER)
     @out_folder.current_folder = @home
 
-    #create hbox to pack output folder and its label
     hbox_out_folder = Gtk::HBox.new
     hbox_out_folder.pack_start(Gtk::Label.new("Output Folder:"), false, true, 10 )\
       .pack_start(@out_folder, true, true, 10)
@@ -119,10 +126,13 @@ class NDStationWindow < Gtk::Window
     .pack_start(trim_button, true, true, 5)\
     .pack_start(about_button, true, true, 5)
 
-    #create vbox and pack notebook
+    #create vbox and pack hboxes
     vbox_main = Gtk::VBox.new
-    vbox_main.pack_start(notebook, true, true, 5)\
-    .pack_start(Gtk::HSeparator.new, false, false, 10)\
+    vbox_main.pack_start(scrolled_roms, true, true, 5)\
+    .pack_start(hbox_title, false, true, 5)\
+    .pack_start(Gtk::HSeparator.new, false, false, 5)\
+    .pack_start((hbox_icon_file), false, true, 5)\
+    .pack_start(Gtk::HSeparator.new, false, false, 5)\
     .pack_start(hbox_in_folder, false, true, 5)\
     .pack_start(hbox_out_folder, false, true, 5)\
     .pack_start(Gtk::HSeparator.new, false, false, 10)\
@@ -133,10 +143,6 @@ class NDStationWindow < Gtk::Window
     show_all
   end
 
-  def update_log(text)
-    @log_buffer.insert_at_cursor(text)
-  end
-
   #load roms upon folder change, picks up Dir.entries and check extension for '.gba'
   def load_roms
     Dir.entries(@in_folder.current_folder).each do |filename|
@@ -144,7 +150,6 @@ class NDStationWindow < Gtk::Window
         iter = @liststore.append
         iter[0] = filename.to_s
         iter[1] = File.join(@in_folder.current_folder, filename)
-        update_log("Added #{filename}\n")
       end
     end
   end
@@ -163,7 +168,6 @@ class NDStationWindow < Gtk::Window
       iter = @liststore.append
       iter[0] = File.basename(dialog.filename)
       iter[1] = dialog.filename
-      update_log("Added #{dialog.filename}\n")
     end
 
     dialog.destroy
@@ -176,12 +180,13 @@ class NDStationWindow < Gtk::Window
     @liststore.remove(file) unless file == nil
   end
 
-  #clear list of roms
   def clear_roms
     @liststore.clear
+    @title.text=''
   end
 
-  #loop over each element of liststore, patching them until the first element of the row is nil
+  #loop over each element of liststore, patching them until
+  #the first element of the row is nil
   def patch
     while @liststore.iter_first
       @liststore.each do |model, path, iter|
@@ -189,7 +194,8 @@ class NDStationWindow < Gtk::Window
         base_name = model.get_value(model.get_iter(path), 0)
 
         #command line options for ndstool go here
-        system("./ndstool")
+        system('./data/ndstool -c #{rom_name} -7 data/7.bin -9 data/9.bin -d data -g "NDST" -b #{icon_file} "#{title.text.strip}"')
+        system('./efs #{rom_name}')
 
         model.remove(model.get_iter(path))
       end
