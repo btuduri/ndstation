@@ -255,14 +255,17 @@ Private Sub processGame(gbaFile As String, outputFolder As String, gameTitle As 
 End Sub
 
 
-Private Sub makeConfig(usesNSAR As Boolean, usesPSRAM As Boolean, _
-                            hasSplash As Boolean, hasBorder As Boolean)
+Private Sub makeConfig(NSAR As Boolean, PSRAM As Boolean, _
+                            Splash As Boolean, Border As Boolean, _
+                            Device As String)
 
-    Call WriteIniValue(binDirectory & "\data\config.ini", "Mode", "NSAR", Bool2INI(usesNSAR))
-    Call WriteIniValue(binDirectory & "\data\config.ini", "Mode", "PSRAM", Bool2INI(usesPSRAM))
+    Call WriteIniValue(binDirectory & "\data\config.ini", "Mode", "NSAR", Bool2INI(NSAR))
+    Call WriteIniValue(binDirectory & "\data\config.ini", "Mode", "PSRAM", Bool2INI(PSRAM))
     
-    Call WriteIniValue(binDirectory & "\data\config.ini", "Graphics", "Border", Bool2INI(hasBorder))
-    Call WriteIniValue(binDirectory & "\data\config.ini", "Graphics", "Splash", Bool2INI(hasSplash))
+    Call WriteIniValue(binDirectory & "\data\config.ini", "Graphics", "Border", Bool2INI(Border))
+    Call WriteIniValue(binDirectory & "\data\config.ini", "Graphics", "Splash", Bool2INI(Splash))
+    
+    Call WriteIniValue(binDirectory & "\data\config.ini", "Hardware", "Device", Device)
 
 End Sub
 

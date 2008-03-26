@@ -29,12 +29,8 @@ Private Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" _
 
 Public Function OpenURL(ByVal URL As String) As Boolean
     Dim res As Long
-    
-    If LCase(Left(URL, 4)) <> "http" Then
-        URL = "http://" & URL
-    End If
-    res = ShellExecute(0&, "open", URL, vbNullString, vbNullString, _
-        vbNormalFocus)
+    If LCase(Left(URL, 4)) <> "http" Then URL = "http://" & URL
+    res = ShellExecute(0&, "open", URL, vbNullString, vbNullString, vbNormalFocus)
     OpenURL = (res > 32)
 End Function
 
