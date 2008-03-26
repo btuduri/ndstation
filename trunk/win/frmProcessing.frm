@@ -172,7 +172,7 @@ Private Sub Form_Activate()
         'Process the elements of row i in the ListView
         Call processGame(frmNDStation.lvwBatch.ListItems(i).Text, frmNDStation.lvwBatch.ListItems(i).SubItems(1), frmNDStation.lvwBatch.ListItems(i).SubItems(2), frmNDStation.lvwBatch.ListItems(i).SubItems(3), frmNDStation.lvwBatch.ListItems(i).SubItems(4), frmNDStation.lvwBatch.ListItems(i).SubItems(5), frmNDStation.lvwBatch.ListItems(i).SubItems(6), frmNDStation.lvwBatch.ListItems(i).SubItems(7))
         'Delete row i
-        frmNDStation.lvwBatch.ListItems.Remove (i)
+        frmNDStation.lvwBatch.ListItems.Remove i
         'Subtract 1 from i and repeat until i = 1 at this step
     Next
     pbrTotal.Value = 100
