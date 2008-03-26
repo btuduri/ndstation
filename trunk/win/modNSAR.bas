@@ -55,7 +55,7 @@ Public Sub compressNSAR(inputFile As String, outputFile As String)
     Call fclose(inputHandle)
     
     outputHandle = fopen(outputFile)
-    Call fwrite(outputHandle, "NSAR")
+    Call fwrite(outputHandle, StrConv("NSAR", vbFromUnicode))
     Call fwrite(outputHandle, hex2nds(dec2hex(frameCount)))
     
     Do While fileCount < frameCount

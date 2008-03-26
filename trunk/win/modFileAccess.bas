@@ -23,7 +23,7 @@ Attribute VB_Name = "modFileAccess"
 
 Option Explicit
 
-Dim pointer(255) As Long
+Dim pointerArray(255) As Long
 Dim filenames(255) As String
 
 Public Const SEEK_SET = 0
@@ -31,27 +31,19 @@ Public Const SEEK_CUR = 1
 Public Const SEEK_END = 2
                         
 Public Function basename(path As String, Optional suffix As String) As String
-    Dim slashloc(1) As Integer, oldslashloc(2) As Integer
-    Dim temppath As String
-    On Error Resume Next
-    temppath = path
-    If UCase(Right(path, Len(suffix))) = UCase(suffix) Then temppath = Left(path, Len(path) - Len(suffix))
-    Do
-        oldslashloc(0) = slashloc(0)
-        slashloc(0) = slashloc(0) + 1
-        slashloc(0) = InStr(slashloc(0), path, "/")
-    Loop Until slashloc(0) = 0
-    Do
-        oldslashloc(1) = slashloc(1)
-        slashloc(1) = slashloc(1) + 1
-        slashloc(1) = InStr(slashloc(1), path, "\")
-    Loop Until slashloc(1) = 0
-    If oldslashloc(0) > oldslashloc(1) Then
-        oldslashloc(2) = oldslashloc(0)
+    Dim pathLoc(1 To 2) As Integer
+    Dim tempBasename As String
+    pathLoc(1) = InStr(StrReverse(path), "\")
+    pathLoc(2) = InStr(StrReverse(path), "/")
+    If pathLoc(1) > 0 And (pathLoc(1) < pathLoc(2) Or pathLoc(2) = 0) Then
+        tempBasename = Right(path, pathLoc(1) - 1)
+    ElseIf pathLoc(2) > 0 And (pathLoc(2) < pathLoc(1) Or pathLoc(1) = 0) Then
+        tempBasename = Right(path, pathLoc(2) - 1)
     Else
-        oldslashloc(2) = oldslashloc(1)
+        tempBasename = path
     End If
-    basename = Mid(temppath, oldslashloc(2) + 1)
+    If Right(tempBasename, Len(suffix)) = suffix Then tempBasename = Left(tempBasename, Len(tempBasename) - Len(suffix))
+    basename = tempBasename
 End Function
                     
 Public Sub copy(source As String, dest As String)
@@ -89,18 +81,17 @@ Public Function fopen(filename As String) As Integer
     On Error Resume Next
     fopen = FreeFile
     Open filename For Binary As fopen
-    pointer(fopen) = 1
+    pointerArray(fopen) = 1
 End Function
 
-Public Function fread(handle As Integer, length As Long) As String
+Public Function fread(handle As Integer, length As Long) As Variant
     On Error Resume Next
-    
-    Dim readtemp As String
-    readtemp = Space(LOF(handle))
     If length > 0 Then
-        Get handle, pointer(handle), readtemp
-        pointer(handle) = pointer(handle) + length
-        fread = Left(readtemp, length)
+        Dim readBuffer() As Byte
+        ReDim readBuffer(0 To (length - 1))
+        Get handle, pointerArray(handle), readBuffer
+        pointerArray(handle) = pointerArray(handle) + length
+        fread = readBuffer
     End If
 End Function
 
@@ -109,26 +100,28 @@ Public Sub fseek(handle As Integer, ByVal offset As Long, Optional whence As Int
     
     Select Case whence
         Case SEEK_SET
-            pointer(handle) = offset + 1
+            pointerArray(handle) = offset + 1
         Case SEEK_CUR
-            pointer(handle) = pointer(handle) + offset
+            pointerArray(handle) = pointerArray(handle) + offset
         Case SEEK_END
-            pointer(handle) = filesize(filenames(handle)) + offset
-            If pointer(handle) > filesize(filenames(handle)) Then pointer(handle) = filesize(filenames(handle))
+            pointerArray(handle) = filesize(filenames(handle)) + offset
+            If pointerArray(handle) > filesize(filenames(handle)) Then pointerArray(handle) = filesize(filenames(handle))
     End Select
 End Sub
 
 Public Function ftell(handle As Integer) As Long
     On Error Resume Next
-    ftell = pointer(handle) - 1
+    ftell = pointerArray(handle) - 1
 End Function
 
-Public Function fwrite(handle As Integer, ByVal data As String, Optional length As Long = -1) As Integer
+Public Function fwrite(handle As Integer, data() As Byte, Optional length As Long = -1) As Integer
     On Error Resume Next
-    If length > 0 Then data = Left(data, length)
-    If Len(data) > 0 Then
-        Put handle, pointer(handle), data
-        pointer(handle) = pointer(handle) + Len(data)
+    Dim tempData() As Byte
+    tempData = data
+    If length > 0 Then ReDim Preserve tempData(0 To (length - 1))
+    If (UBound(tempData) - LBound(tempData) + 1) > 0 Then
+        Put handle, pointerArray(handle), tempData
+        pointerArray(handle) = pointerArray(handle) + (UBound(tempData) - LBound(tempData) + 1)
     End If
 End Function
 
@@ -141,7 +134,7 @@ End Sub
 
 Public Sub rewind(handle As Integer)
     On Error Resume Next
-    pointer(handle) = 1
+    pointerArray(handle) = 1
 End Sub
 
 Public Sub unlink(filename As String)

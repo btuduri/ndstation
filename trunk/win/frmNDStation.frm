@@ -248,7 +248,7 @@ Begin VB.Form frmNDStation
       ToolTipText     =   "Compresses the ROM to get smaller filesizes at the expense of loading time"
       Top             =   2640
       Value           =   1  'Checked
-      Width           =   1515
+      Width           =   1635
    End
    Begin VB.CheckBox chkPSRAM 
       Caption         =   "Use PSRAM"
