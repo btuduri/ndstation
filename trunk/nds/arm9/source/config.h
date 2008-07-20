@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,11 +17,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#define CONFIG_NSAR_ENABLED    1
-#define CONFIG_PSRAM_ENABLED   2
-#define CONFIG_DEVICE_TYPE     3
+#ifndef __CONFIG_H
+#define __CONFIG_H
 
-#define CONFIG_BORDER_ENABLED  4
-#define CONFIG_SPLASH_ENABLED  5
+typedef struct
+{
+  unsigned int compress :1;
+  unsigned int psram    :1;   
+  unsigned int border   :1;
+  unsigned int splash   :1;
+  char* filename;
+  int filesize;
+} configStruct;
 
-bool config_file(int key);
+void populateConfig(configStruct* cfg);
+
+#endif //__CONFIG_H

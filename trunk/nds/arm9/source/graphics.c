@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,14 +24,16 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <string.h>
 
 #include "efs_lib.h"
+#include "config.h"
+#include "flash.h"
 
-int getSize(uint8 * source, uint16 * dest, uint32 r2)
+int getSize(uint8* source, uint16* dest, uint32 r2)
 {
 	u32 size = *((u32*)source) >> 8;
 	return (size<<8) | 0x10;
 }
 
-uint8 readByte(uint8 * source)
+uint8 readByte(uint8* source)
 {
 	return *source++;
 }
@@ -45,47 +47,47 @@ void decompressToVRAM(const void* source, void* dest)
 	swiDecompressLZSSVram((void*)source, dest, 0, &decStream);
 }
 
-void loadSplash(void) {
-
-	// load a splash/loading screen
-	// this function is f***ed up at the moment
-
-	/*EFS_FILE* splashFile;
-	int fileSize = EFS_size("/splash.lz7");
-
-	char* splashData = malloc(fileSize);
-	memset(splashData, 1, fileSize);
-
-	splashFile = EFS_fopen("/splash.lz7");
-
-	EFS_fread(splashData, 1, fileSize, splashFile);
-	EFS_fclose(splashFile);
-
-	decompressToVRAM((void*)splashData, BG_GFX);
-
-	free(splashData);*/
-
-
-	/*EFS_FILE* splashFile = EFS_fopen("/splash.lz7");
-	int fileSize = EFS_GetFileSize(splashFile);
-	char* splashCompData = malloc(fileSize);
-	char* splashDecompData = malloc(256*192*2);
-
-	EFS_fread(splashCompData, 1, fileSize, splashFile);
-	EFS_fclose(splashFile);
-	swiDecompressLZSSWram(splashCompData, splashDecompData);
-
-	memcpy((void*)BG_GFX, (void*)splashDecompData, 256*192*2);
-
-	free(splashCompData);
-	free(splashDecompData);*/
-
+void setupConsole()
+{
+  videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
+	vramSetBankA(VRAM_A_MAIN_BG);
+	BG0_CR = BG_MAP_BASE(31);
+	BG_PALETTE[255] = RGB15(31,31,31);
+	consoleInitDefault((u16*)SCREEN_BASE_BLOCK(31), (u16*)CHAR_BASE_BLOCK(0), 16); 
+  if(PersonalData->_user_data.gbaScreen)
+    lcdMainOnBottom();
 }
 
-void loadBorder(bool useBorder) {
+void setupSplash(configStruct* cfg)
+{
+  scanKeys();
+	if(!(keysDown() & KEY_R) && cfg->splash)
+  {
+    iprintf("Setting up splash...");
+		// set up the VRAM to load in a splash/loading screen
+		videoSetMode(MODE_5_2D | DISPLAY_BG3_ACTIVE);
+		videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE);
+		vramSetMainBanks(VRAM_A_MAIN_BG_0x06000000, VRAM_B_LCD,	VRAM_C_SUB_BG , VRAM_D_LCD);
+		BG3_CR = BG_BMP16_256x256;
+		BG3_XDX = 1 << 8;
+		BG3_XDY = 0;
+		BG3_YDX = 0;
+		BG3_YDY = 1 << 8;
+		BG3_CX = 0;
+		BG3_CY = 0;
+    FILE* splashFile = fopen("/splash.lz7", "rb");
+		int fileSize = filesize("/splash.lz7");
+		char* splashData = malloc(fileSize);
+		memset(splashData, 0, fileSize);
+		fread(splashData, 1, fileSize, splashFile);
+		fclose(splashFile);
+		decompressToVRAM((void*)splashData, BG_GFX);
+		free(splashData);
+	}
+}
 
-	// load the border used in GBA mode
-
+void setupBorder(configStruct* cfg)
+{
 	videoSetMode(MODE_5_2D | DISPLAY_BG3_ACTIVE);
 	videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
 	vramSetMainBanks(VRAM_A_MAIN_BG_0x06000000, VRAM_B_MAIN_BG_0x06020000, VRAM_C_SUB_BG_0x06200000, VRAM_D_LCD);
@@ -97,29 +99,27 @@ void loadBorder(bool useBorder) {
 	BG3_CX = 0;
 	BG3_CY = 0;
 
-	if(useBorder){
-		EFS_FILE* borderFile;
-		int fileSize = EFS_size("/border.lz7");
-
+	if(cfg->border)
+  {
+    iprintf("Setting up border...");
+		FILE* borderFile = fopen("/border.lz7", "rb");
+		int fileSize = filesize("/border.lz7");
 		char* borderData = malloc(fileSize);
 		memset(borderData, 0, fileSize);
-
-		borderFile = EFS_fopen("/border.lz7");
-
-		EFS_fread(borderData, 1, fileSize, borderFile);
-		EFS_fclose(borderFile);
-
+		fread(borderData, 1, fileSize, borderFile);
+		fclose(borderFile);
 		decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(0));
 		decompressToVRAM((void*)borderData, (void*)BG_BMP_RAM(8));
-
 		free(borderData);
-	} else {
+	}
+  else
+  {
+    iprintf("Reinitializing video memory...");
 		uint16* vram = (uint16*)BG_BMP_RAM(0);
 		int z = 0;
-	    for(z=0; z<(256*192); z++)
-	    {
-	        vram[z] = 0;
-	    }
+	  for(z=0; z<(256*192); z++)
+	  {
+	    vram[z] = 0;
+	  }
 	}
-
 }		

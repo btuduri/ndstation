@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,72 +29,78 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 int sramBufferSize = 0x1000; //4096 bytes == one page
 
-void writeSAV(void) {
-
-	iprintf("Backing up save file to Slot 1.\n");
+void sramBackup(void)
+{
+	iprintf("Reading save to Slot 1...\n");
 
 	char* saveLocation = calloc(1, 512);
-	FILE* configFile;
-	FILE* saveTest;
+	FILE* locationFile;
+	FILE* saveFile;
+  u8* buf = (u8*)malloc(sramBufferSize);
+  int i = 0;
 
-	configFile = fopen("/gba.cfg", "a");
-	fclose(configFile);
-	configFile = fopen("/gba.cfg", "r");
-	fread(saveLocation, 512, 1, configFile);
-	fclose(configFile);
-	if((saveTest = fopen(saveLocation, "r"))){
-		fclose(saveTest);
-		writeSRAMToFile(saveLocation);
-	}
+  mkdir("fat0:/data/", 0);
+	locationFile = fopen("fat0:/data/ndstation.sav", "a+");
+	rewind(locationFile);
+	fread(saveLocation, 512, 1, locationFile);
+	fclose(locationFile);
+  saveFile = fopen(saveLocation, "rb+");
 
+  OpenNorWrite();
+  for (i = 0; i < TOT_SRAM_PAGES; i++)
+  {
+    memset(buf, 0, sramBufferSize);
+    SetRampage(i);
+    ReadSram(0x0A000000, buf, sramBufferSize);
+    fwrite(buf, sramBufferSize, 1, saveFile);
+  }
+
+  free(buf);
+  fclose(saveFile);
+  SetRampage(0);
+  CloseNorWrite();
+  
 	free(saveLocation);
-
 }
 
-void readSAV(void) {
-
-	iprintf("Writing save file to 3-in-1.\n");
-
-	char savename[256] = "\0";
-	FILE* saveConfig;
-	
-	strncpy(savename, efs_path, strlen(efs_path) - 3);
-	strcat(savename, "sav");
-	writeFileToSRAM(savename);	
-	saveConfig = fopen("/gba.cfg", "w");
-	fwrite(savename, strlen(savename), 1, saveConfig);
-
-	fclose(saveConfig);
-
-}
-
-void writeSRAMToFile(char* filename)
+void sramWrite(void)
 {
+	iprintf("Writing save to SRAM...\n");
 
-	u8 pages = 0;
+  char* saveLocation = calloc(1, 512);
+	FILE* locationFile;
+  FILE* saveFile;
+	u8* saveBuf = (u8*)malloc(sramBufferSize);
+  int ret = 1;
+	int i = 16;
 
-	FILE* saver = fopen(filename, "rb+");
+	strncpy(saveLocation, efs_path, strlen(efs_path) - 3);
+	strcat(saveLocation, "sav");
+  iprintf("Save file: %s\n", saveLocation);
 
-	u8* buf = (u8*)malloc(sramBufferSize);
+  saveFile = fopen(saveLocation, "rb");
 
-	int i = 0; // the setup for which page to start dumping from if it is a prototype
+  iprintf("Erasing SRAM...\n");
+	blankSRAM((64+256)/4);
+  iprintf("Erasing OK!\n");
 
-	pages = TOT_SRAM_PAGES;
-
-	OpenNorWrite();
-	for (; i < pages; i ++)
+  iprintf("Copying...\n");
+	for (i = getStartpage(); i < MAX_SRAM_PAGES && ret == 1; i ++)
 	{
-		memset(buf, 0, sramBufferSize);
+		memset(saveBuf, 0, sramBufferSize);
 		SetRampage(i);
-		ReadSram(0x0A000000, buf, sramBufferSize);
-		fwrite(buf, sramBufferSize, 1, saver);
+		ret = fread(saveBuf, sramBufferSize, 1, saveFile);
+		if (ret == 1) WriteSram(0x0A000000, (u8*)saveBuf, sramBufferSize);
 	}
 
-	free(buf);
-	fclose(saver);
+	fclose(saveFile);
+	free(saveBuf);
 	SetRampage(0);
+  iprintf("Save written OK!\n");
 
-	CloseNorWrite();
+	locationFile = fopen("fat0:/data/ndstation.sav", "w");
+	fwrite(saveLocation, strlen(saveLocation), 1, locationFile);
+	fclose(locationFile);
 }
 
 void blankSRAM(u8 pages)
@@ -115,33 +121,6 @@ void blankSRAM(u8 pages)
 	free(saveBuf);
 	SetRampage(0);
 	CloseNorWrite();
-}
-
-void writeFileToSRAM(char* filename)
-{
-
-	FILE* saveFile = fopen(filename, "rb");
-
-	u8* saveBuf;
-	saveBuf = (u8*)malloc(sramBufferSize);
-
-	blankSRAM((64+256)/4);
-
-	int ret = 1;
-
-	int i = 16;
-	for (i = getStartpage(); i < MAX_SRAM_PAGES && ret == 1; i ++)
-	{
-		memset(saveBuf, 0, sramBufferSize);
-		SetRampage(i);
-		ret = fread(saveBuf, sramBufferSize, 1, saveFile);
-		if (ret == 1) WriteSram(0x0A000000, (u8*)saveBuf, sramBufferSize);
-	}
-
-	fclose(saveFile);
-	free(saveBuf);
-	SetRampage(0);
-
 }
 
 int getStartpage(void)

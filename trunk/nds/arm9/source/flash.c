@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,250 +22,126 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <stdlib.h>
 #include <string.h>
 #include <fat.h>
-#include <zlib.h>
 
 #include "3in1.h"
 #include "efs_lib.h"
 #include "flash.h"
 #include "sram.h"
+#include "config.h"
 
-int FAT_size(char* path) {
-	FILE* fatFile;
-	int fatSize;
-
-	fatFile = fopen(path, "rb");
-	fseek(fatFile, 0, SEEK_END);
-	fatSize = ftell(fatFile);
-
-	fclose(fatFile);
-	return fatSize;
-}
-
-int isPSRAM(char* path) {
-
-	int result;
-	EFS_FILE* modeFile;
-	char* mode = calloc(1, 1);
-
-	modeFile = EFS_fopen("/mode.txt");
-	EFS_fread(mode, 1, 1, modeFile);
-	result = !strcmp(mode, "P");
-
-	EFS_fclose(modeFile);
-	free(mode);
-
-	return result;
-}
-
-int isGZ(char* path) {
-
-	int result;
-	EFS_FILE* modeFile;
-	char* mode = calloc(1, 1);
-
-	modeFile = EFS_fopen("/mode.txt");
-	EFS_fseek(modeFile, 1, SEEK_SET);
-	EFS_fread(mode, 1, 1, modeFile);
-	result = !strcmp(mode, "C");
-
-	EFS_fclose(modeFile);
-	free(mode);
-
-	return result;
-}
-
-void writeToNOR(char* filename, int size, int isFATmode)
+int filesize(char* file)
 {
-	u8* buf;
-	buf = (u8*) malloc(LEN);
-	memset (buf, 0xFF, LEN);
+  FILE* fp = fopen(file, "rb");
+	fseek(fp, 0, SEEK_END);
+	long size = ftell(fp);
+	fclose(fp);
+  return size;
+}
 
-	scanKeys();
-
-	OpenNorWrite();
-	SetSerialMode();
-
-	if(!(checkNOR(filename) && !(keysDown() & KEY_A))){
-
+void writeToNOR(configStruct* cfg)
+{
+  scanKeys();
+  
+	if(!(checkNOR(cfg) && !(keysDown() & KEY_A)))
+  {
+    iprintf("Erasing NOR...\n");
+    OpenNorWrite();
+    SetSerialMode();
 		u32 kk = 0;
-		u32 address = 0;
-
-		for(kk=0; kk <= size && kk < MAX_NOR; kk+=0x40000)
-		{
+		for(kk=0; kk <= cfg->filesize && kk < MAX_NOR; kk+=0x40000)
 			Block_Erase(kk);
-		}
+    CloseNorWrite();
+    iprintf("Erase OK!...\n");
 
-		CloseNorWrite();
-
-		FILE* gbaFile_FAT = NULL;
-		EFS_FILE* gbaFile_EFS = NULL;
-
-		if(isFATmode){
-			gbaFile_FAT = fopen(filename, "rb");
-		} else {
-			gbaFile_EFS = EFS_fopen(filename);
-		}
-
-		iprintf("Writing GBA game to NOR.\n");
-
+    
+    
 		OpenNorWrite();
 		SetSerialMode();
+    
+    FILE* gbaFile = fopen(cfg->filename, "rb");
+    u32 address = 0;
+    u8* buf = (u8*) malloc(LEN);
+    memset(buf, 0xFF, LEN);
 
-		for (address = 0; address <= size && address < MAX_NOR; address += LEN)
+    iprintf("Writing game to NOR...\n");
+		for (address = 0; address <= cfg->filesize && address < MAX_NOR; address += LEN)
 		{
-			if(isFATmode) {
-				fread(buf, 1, LEN, gbaFile_FAT);
-			} else {
-				EFS_fread(buf, 1, LEN, gbaFile_EFS);
-			}
+      if(cfg->compress)
+      {
+      
+      }
+      else
+      {
+        fread(buf, 1, LEN, gbaFile);
+      }
 			WriteNorFlash(address, buf, LEN);
-			memset (buf, 0xFF, LEN);
+			memset(buf, 0xFF, LEN);
 		}
+    iprintf("Write OK!...\n");
 
-		if(isFATmode){
-			fclose(gbaFile_FAT);
-		} else {
-			EFS_fclose(gbaFile_EFS);
-		}
-
+    CloseNorWrite();
+    fclose(gbaFile);
+    free(buf);
 	}
-
-	CloseNorWrite();
-
-	free(buf);
-
 }
 
-void writeToPSRAM(char* filename, int size, int isFATmode)
+void writeToPSRAM(configStruct* cfg)
 {
-	u8* buf;
-	buf = (u8*) malloc(LEN);
-	memset (buf, 0xFF, LEN);
-
-	FILE* gbaFile_FAT = NULL;
-	EFS_FILE* gbaFile_EFS = NULL;
-
-	if(isFATmode){
-		gbaFile_FAT = fopen(filename, "rb");
-	} else {
-		gbaFile_EFS = EFS_fopen(filename);
-	}
-
-	u32 address = 0;
-
-	iprintf("Writing GBA game to PSRAM.\n");
-
 	REG_EXMEMCNT &= ~0x0880;
 	SetRompage(381);
 	OpenNorWrite();
 	SetSerialMode();
+  
+  FILE* gbaFile = fopen(cfg->filename, "rb");
+  u8* buf = (u8*) malloc(LEN);
+	memset(buf, 0xFF, LEN);
+  u32 address = 0;
 
-	for (address = 0; address <= size && address < MAX_NOR; address += LEN)
+  iprintf("Writing game to PSRAM....\n");
+	for (address = 0; address <= cfg->filesize && address < MAX_PSRAM; address += LEN)
 	{
-		if(isFATmode){
-			fread(buf, 1, LEN, gbaFile_FAT);
-		} else {
-			EFS_fread(buf, 1, LEN, gbaFile_EFS);
+    if(cfg->compress)
+    {
+      
+    }
+    else
+    {
+      fread(buf, 1, LEN, gbaFile);
 		}
-		WritePSRAM(address, buf, LEN); 
-		memset (buf, 0xFF, LEN);
+    WritePSRAM(address, buf, LEN); 
+		memset(buf, 0xFF, LEN);
 	}
+  iprintf("Write OK!...\n");
 
 	CloseNorWrite();
 	SetRompage(384);
-
-	if(isFATmode){
-		fclose(gbaFile_FAT);
-	} else {
-		EFS_fclose(gbaFile_EFS);
-	}
-
+  fclose(gbaFile);
 	free(buf);
-
 }
 
-int uncompressToCard(char *source, char *dest){
-	gzFile inFile = gzopen(source, "rb");
-	FILE *outFile = fopen(dest, "wb");
-	char *buffer[512];
-	int writeSize = 0;
-	int test = 0;
-	int result = 0;
-
-	while((writeSize = gzread(inFile, buffer, sizeof(buffer))) > 0){
-		if(writeSize < 0){
-			gzerror(inFile, &result);
-			break;
-		}else if(writeSize == 0){
-			result = EOF;
-			break;
-		}
-		if((test = fwrite(buffer, 1, (unsigned)writeSize, outFile)) != writeSize){
-			result = Z_ERRNO;
-			break;
-		}
-	}
-
-	gzclose(inFile);
-	fclose(outFile);
-
-	if(result == EOF){
-		return Z_OK;
-	}else if(result == Z_ERRNO){
-		return Z_ERRNO;
-	}else{
-		return result;
-	}
-}
-
-void copyToCard(char *source, char *dest)
+int checkNOR(configStruct* cfg)
 {
-	EFS_FILE* in = EFS_fopen(source);
-	FILE* out = fopen(dest, "wb");
-
-	unsigned char buffer[4096];
-
-	unsigned int file_size;
-	file_size = EFS_size(source);
-
-	while (file_size)
-	{
-		unsigned int to_copy = file_size > 4096 ? 4096 : file_size;
-		EFS_fread(buffer, to_copy, 1, in);
-		fwrite(buffer, to_copy, 1, out);
-		file_size -= to_copy;
-	}
-
-	EFS_fclose(in);
-	fclose(out);
-}
-
-int checkNOR(char* filename){
-	// checks if a file is already written to the NOR
-
-	u8* test1;
-	u8* test2;
-	int result = 0;
-
-	test1 = (u8*) malloc(LEN);
-	test2 = (u8*) malloc(LEN);
-
-	FILE* checkFile = fopen(filename, "rb");
-
+	u8* test1 = (u8*) malloc(LEN);
+	u8* test2 = (u8*) malloc(LEN);
+	FILE* checkFile = fopen(cfg->filename, "rb");
+  
 	ReadNorFlash(test1, 0, LEN);
-	fread(test2, 1, LEN, checkFile);
-
-	result = memcmp(test1, test2, LEN);
-
-	iprintf("%i\n", result);
-
+  
+  if(cfg->compress)
+  {
+    
+  }
+  else
+  {
+    fread(test2, 1, LEN, checkFile);
+  }
+  
+	int result = memcmp(test1, test2, LEN);
+  result = (int)(result == 0);
+	iprintf("NOR redundancy check: %i\n", result);
 	fclose(checkFile);
 	free(test1);
 	free(test2);
-
-	if(result == 0)
-		return 1;
-
-	return 0;
-	
+  
+	return result;
 }
