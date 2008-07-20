@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,7 +24,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "efs_lib.h"
 #include "nsar.h"
 
-void NSAR_open(NSAR_FILE* nsar, char* filename){
+void NSAR_open(NSAR_FILE* nsar, char* filename)
+{
 
 	EFS_FILE* nsar_file = EFS_fopen(filename);
 	char* nsar_magic = malloc(4);
@@ -32,7 +33,8 @@ void NSAR_open(NSAR_FILE* nsar, char* filename){
 
 	EFS_fread(nsar_magic, 1, 4, nsar_file);
 	
-	if(!memcmp(nsar_magic, "NSAR", 4)){
+	if(!memcmp(nsar_magic, "NSAR", 4))
+  {
 		uint32* chunk_count = 0;
 
 		EFS_fread(chunk_count, 4, 1, nsar_file);
@@ -40,7 +42,9 @@ void NSAR_open(NSAR_FILE* nsar, char* filename){
 		nsar->nsar_handle = nsar_file;
 
 		free(chunk_count);
-	} else {
+	}
+  else
+  {
 		iprintf("Not a NSAR file.");
 		EFS_fclose(nsar_file);
 	}
@@ -49,7 +53,8 @@ void NSAR_open(NSAR_FILE* nsar, char* filename){
 
 }
 
-void NSAR_nextChunk(char* decomp_data, NSAR_FILE* nsar){
+void NSAR_nextChunk(char* decomp_data, NSAR_FILE* nsar)
+{
 
 	uint32* this_chunk_size = malloc(4);
 	char* comp_data = malloc(CHUNK_SIZE);

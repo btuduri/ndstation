@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,91 +25,53 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "efs_lib.h"
 #include "flash.h"
 #include "graphics.h"
-#include "reboot.h"
 #include "sram.h"
+#include "../../common/ipc.h"
 
-int main(void) {
-
+int main(void)
+{
 	irqInit();
 	irqEnable(IRQ_VBLANK);
-	
-	scanKeys();
-	if((keysDown() & KEY_R) || !config_file(CONFIG_SPLASH_ENABLED)){
-		// if the R button is depressed, we enter console mode
-		videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
-		vramSetBankA(VRAM_A_MAIN_BG);
-		BG0_CR = BG_MAP_BASE(31);
-		BG_PALETTE[255] = RGB15(31,31,31);
-		consoleInitDefault((u16*)SCREEN_BASE_BLOCK(31), (u16*)CHAR_BASE_BLOCK(0), 16); 
-	} else {
-		// set up the VRAM to load in a splash/loading screen
-		videoSetMode(MODE_5_2D | DISPLAY_BG3_ACTIVE);
-		videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE);
-		vramSetMainBanks(VRAM_A_MAIN_BG_0x06000000, VRAM_B_LCD,	VRAM_C_SUB_BG , VRAM_D_LCD);
-		BG3_CR = BG_BMP16_256x256;
-		BG3_XDX = 1 << 8;
-		BG3_XDY = 0;
-		BG3_YDX = 0;
-		BG3_YDY = 1 << 8;
-		BG3_CX = 0;
-		BG3_CY = 0;
-		loadSplash();
-	}
+	setupConsole();
 
-	// lazy way to handle the firmware's GBA screen setting
-	if(PersonalData->_user_data.gbaScreen) lcdMainOnBottom();
+  iprintf("Initializing FAT...\n");
+  if(EFS_Init(EFS_AND_FAT | EFS_DEFAULT_DEVICE, NULL))
+  {
+    iprintf("FAT OK!\n");
 
-	if(fatInitDefault()) {
-		iprintf("Survived FAT init.\n");
+    // Uncomment the following line to use true FAT instead of EFS
+    // chdir("fat0:/");
+    
+    iprintf("Configuring...\n");
+    configStruct cfg;
+    populateConfig(&cfg);
+    iprintf("Configuation OK!\n");
+    iprintf("PSRAM: %i\n", cfg.psram);
+    iprintf("NSAR: %i\n", cfg.compress);
 
-		if(EFS_Init()) {
+    setupSplash(&cfg);
 
-			iprintf("Survived EFS init.\n");
+		sramBackup();
+    sramWrite();
 
-			// backup save to Slot 1
-			writeSAV();
+    if(cfg.psram)
+      writeToPSRAM(&cfg);
+    else
+      writeToNOR(&cfg);
 
-			// write save to 3in1
-			readSAV();
+    setupBorder(&cfg);
 
-			if(config_file(CONFIG_PSRAM_ENABLED)){
-				// using PSRAM...
-				if(config_file(CONFIG_NSAR_ENABLED)){
-					copyToCard("/game.gz", "/game.gz");
-					uncompressToCard("/game.gz", "/game.gba");
-					writeToPSRAM("/game.gba", FAT_size("/game.gba"), 1);
-				} else {
-					writeToPSRAM("/game.gba", EFS_size("/game.gba"), 0);
-				}
-			} else {
-				// using NOR...
-				if(config_file(CONFIG_NSAR_ENABLED)){
-					copyToCard("/game.gz", "/game.gz");
-					uncompressToCard("/game.gz", "/game.gba");
-					writeToNOR("/game.gba", FAT_size("/game.gba"), 1);
-				} else {
-					writeToNOR("/game.gba", EFS_size("/game.gba"), 0);
-				}
-			}
+    iprintf("Starting GBA mode...\n");
+    sysSetBusOwners(BUS_OWNER_ARM7,BUS_OWNER_ARM7);
+    IPC_ARM9 = IPC_GBA_BOOT;
+  }
+  else
+  {
+    iprintf("FAT error!\n");
+  }
 
-			iprintf("Write complete.\n");
-
-			// clean up from compressed mode
-			remove("/game.gz");
-			remove("/game.gba");
-
-			// load the border and reset to GBA mode
-			loadBorder(config_file(CONFIG_BORDER_ENABLED));
-			bootGBA();
-
-		} else {
-			iprintf("Error in EFS init!\n");
-		}
-	} else {
-		iprintf("Error in FAT init!\n");
-	}
-
-	while(1) {
+	while(1)
+  {
 		swiWaitForVBlank();
 	}
 

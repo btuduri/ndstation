@@ -20,7 +20,7 @@ all:  $(TARGET).nds
 
 #---------------------------------------------------------------------------------
 $(TARGET).nds	:	$(TARGET).arm7 $(TARGET).arm9
-	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9 -d efsroot -g "NDST" "13" "NDStation" -b icon.bmp "NDStation"
+	ndstool	-c $(TARGET).nds -7 $(TARGET).arm7 -9 $(TARGET).arm9 -d efsroot -b icon.bmp "NDStation"
 	efs $(TARGET).nds
 
 #---------------------------------------------------------------------------------

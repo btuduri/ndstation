@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,19 +17,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#define LEN 0x8000         // 1mbit NOR page size
-#define MAX_NOR 0x2000000  // 32MByte 
+#ifndef __FLASH_H
+#define __FLASH_H
+
+#include "config.h"
+
+#define LEN       0x8000     // 1Mb NOR page size
+#define MAX_NOR   0x2000000  // 32MB
 #define MAX_PSRAM 0x1000000
 
-int isPSRAM(char* path);
-int isGZ(char* path);
+int filesize(char* file);
+void writeToNOR(configStruct* cfg);
+void writeToPSRAM(configStruct* cfg);
+int checkNOR(configStruct* cfg);
 
-int FAT_size(char* path);
-
-void writeToNOR(char* filename, int size, int isFATmode);
-void writeToPSRAM(char* filename, int size, int isFATmode);
-
-int uncompressToCard(char *source, char *dest);
-void copyToCard(char *source, char *dest);
-
-int checkNOR(char* filename);
+#endif

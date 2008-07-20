@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,22 +17,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef NDS_SRAM_INCLUDE
-#define NDS_SRAM_INCLUDE
+#ifndef __SRAM_H
+#define __SRAM_H
 
-#define TOT_SRAM_PAGES 128 // last selectable page is 127
-#define MAX_SRAM_PAGES 80 // 64+256/4
-#define SRAM_PAGE_SIZE 0x1000  	// SRAM Page Size
-#define MAX_SRAM 0x50000 //0x80000	 4MBit/512KByte total SRAM - use only first 64k+256k
+#define TOT_SRAM_PAGES 128    // last selectable page is 127
+#define MAX_SRAM_PAGES 80     // 64+256/4
+#define SRAM_PAGE_SIZE 0x1000 // SRAM Page Size
+#define MAX_SRAM 0x50000      //0x80000	4MBit/512KByte total SRAM - use only first 64k+256k
 
-// 0 to pages are blanked
 void blankSRAM(u8 pages);
 
-// filename, path, bytesize - #pages must be checked externally for validity
-void writeSAV(void);
-void readSAV(void);
-void writeSRAMToFile(char* filename);
-void writeFileToSRAM(char* filename);
+void sramBackup(void);
+void sramWrite(void);
 int getStartpage(void);
 
-#endif // NDS_SRAM_INCLUDE
+#endif

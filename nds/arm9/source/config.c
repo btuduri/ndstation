@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,28 +18,34 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 #include <nds.h>
-
 #include "config.h"
 #include "iniparser.h"
+#include "flash.h"
 
-bool config_file(int key){
-	dictionary* iniFile = iniparser_new("/config.ini");
-	switch(key)
-	{
-		case 1: // NSAR enabled?
-			return iniparser_getboolean(iniFile, "mode:nsar", 0);
-			break;
-		case 2: // PSRAM enabled?
-			return iniparser_getboolean(iniFile, "mode:psram", 0);
-			break;
-		case 3: // Device type?
-			break;
-		case 4: // Border enabled?
-			return iniparser_getboolean(iniFile, "graphics:border", 0);
-			break;
-		case 5: // Splash enabled?
-			return iniparser_getboolean(iniFile, "graphics:splash", 0);
-			break;
-	}
-	return false;
+void populateConfig(configStruct* cfg)
+{
+  iprintf("Loading configuration file...\n");
+	dictionary* iniFile = iniparser_load("/config.ini");
+  
+  iprintf("Populating configuration...\n");
+	cfg->compress = iniparser_getboolean(iniFile, "mode:nsar", 0);
+	cfg->psram = iniparser_getboolean(iniFile, "mode:psram", 0);
+	cfg->border = iniparser_getboolean(iniFile, "graphics:border", 0);
+	cfg->splash = iniparser_getboolean(iniFile, "graphics:splash", 0);
+  
+  iprintf("Unloading configuration file...\n");
+  iniparser_freedict(iniFile);
+  
+  iprintf("Finding game file...\n");
+  cfg->filename = (char*) malloc(16);
+  memset(cfg->filename, 0x00, 16);
+  if(cfg->compress)
+    strcpy(cfg->filename, "/game.nsar");
+  else
+    strcpy(cfg->filename, "/game.gba");
+  iprintf("Game file: %s\n", cfg->filename);
+
+  iprintf("Calculating game size...\n");
+  cfg->filesize = filesize(cfg->filename);
+  iprintf("Game size: %u bytes\n", cfg->filesize);
 }

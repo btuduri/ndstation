@@ -1,6 +1,6 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
+NDStation v2.0 - flash GBA ROMs to a Slot 2 expansion pack
+Copyright (C) 2008 Chaz Schlarp
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,13 +17,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <nds.h>
-#include <stdio.h>
+#define CHUNK_SIZE 131072
 
-#include "../../common/ipc.h"
+typedef struct {
+    u32   chunks_left;
+    EFS_FILE* nsar_handle;
+} NSAR_FILE;
 
-void bootGBA(void){
-	iprintf("Starting execution.\n");
-	sysSetBusOwners(BUS_OWNER_ARM7,BUS_OWNER_ARM7);
-	IPC_ARM9 = IPC_GBA_BOOT;
-}
+void NSAR_open(NSAR_FILE* nsar, char* filename);
+void NSAR_nextChunk(char* decomp_data, NSAR_FILE* nsar);

@@ -1,35 +1,18 @@
 /*
-NDStation v1.3 - flash GBA ROMs to a Slot 2 expansion pack
-Copyright (C) 2007 Chaz Schlarp
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-*/
-
-/*
 
   Embedded File System (EFS)
   --------------------------
 
   file        : efs_lib.c 
-  author      : Alekmaul & Noda
+  author      : Noda (initially based on Alekmaul's libNitro)
   description : File system functions
+
+  special thanks : Alekmaul, Michoko, Eris, Kusma, M3d10n
 
   history : 
 
     12/05/2007 - v1.0
-      = Original release
+      = original release
       
     13/05/2007 - v1.1
       = corrected problems with nds files with loader
@@ -48,18 +31,26 @@ with this program; if not, write to the Free Software Foundation, Inc.,
       + added autoflush on file close by default
       + added extension checking when searching the NDS file (improve speed)
       
-    TODO:
-      + Add optional sequential file opening mode [add EFS_nextFile()]
+    12/01/2008 - v1.3
+      = corrected EFS_GetFileSize() function when using real fat mode
       
+    25/06/2008 - v2.0
+      + complete rewrite of the lib (breaks compatibility with old versions!)
+      + added full devoptab integration, so it now use standard iolib functions
+      + added automatic GBA rom detection (so it works in GBA flash kits & emu 
+        without any modifications), based on Eris' NitroFS driver idea
+      + full chdir and unix standard paths (relative/absolute) support 
+      + great speed improve
+
 */
 
 #include <nds.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/dir.h>
+#include <sys/iosupport.h>
+#include <fat.h>
 
 #include "efs_lib.h"
 
@@ -67,67 +58,173 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 extern "C" {
 #endif 
 
-#ifndef EFS_REAL_FAT_MODE
+// defines
+#define EFS_READBUFFERSIZE      4096
+#define EFS_SEARCHFILE          0
+#define EFS_SEARCHDIR           1
+#define EFS_LISTDIR             2
+#define EFS_GBALOADERSTR        "PASSDF"
+#define EFS_STDLOADERSTR        "PASS01"
+#define EFS_LOADERSTROFFSET     172
+#define EFS_LOADEROFFSET        512
+#define EFS_FNTOFFSET           64
+#define EFS_FATOFFSET           72
+#define EFS_NITROROOTID         0xF000
+#define EFS_ISFILE              0
+#define EFS_ISDIR               1
+#define EFS_PREFIX              "efs:"
+#define EFS_PREFIX_LEN          4
+#define EFS_DEVICE              "efs:/"
 
-#define EFS_READBUFFERSIZE  4096
-#define EFS_SEARCHFILE      0
-#define EFS_SEARCHDIR       1
-#define EFS_LISTDIR         2
+
+// internal file/dir struct
+typedef struct _EFS_FileStruct {
+    u32 start;
+    u32 pos;
+    u32 end;
+} EFS_FileStruct;
+
+typedef struct _EFS_DirStruct {
+    u16 dir_id;
+    u16 curr_file_id;
+    u32 pos;
+} EFS_DirStruct;
 
 // mix up the magic string to avoid doubling it in the NDS
 const char efsMagicStringP2[] = " EFSstr";
 const char efsMagicStringP1[] = "\xCE\x05\xA9\xBF";
 
-FILE *nds_file;
+// export variables
+extern int efs_id;
+extern u32 efs_filesize;
+
+// globals
+int nds_file;
 u32 fnt_offset;
 u32 fat_offset;
 bool hasLoader;
+bool useDLDI;
+bool hasWritten;
 
 char fileInNDS[EFS_MAXPATHLEN];
+char currPath[EFS_MAXPATHLEN];
 bool filematch;
 u8 searchmode;
 u32 file_idpos;
 u32 file_idsize;
 
-// extract directory
+devoptab_t EFSdevoptab = {
+    "efs",                      // const char *name;
+    sizeof(EFS_FileStruct),     // int structSize;
+    &EFS_Open,                  // int (*open_r)(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
+    &EFS_Close,                 // int (*close_r)(struct _reent *r, int fd);
+    &EFS_Write,                 // int (*write_r)(struct _reent *r, int fd, const char *ptr, int len);
+    &EFS_Read,                  // int (*read_r)(struct _reent *r, int fd,char *ptr, int len);
+    &EFS_Seek,                  // int (*seek_r)(struct _reent *r, int fd, int pos, int dir);
+    &EFS_Fstat,                 // int (*fstat_r)(struct _reent *r, int fd, struct stat *st);
+    &EFS_Stat,                  // int (*stat_r)(struct _reent *r, const char *file, struct stat *st);
+    NULL,                       // int (*link_r)(struct _reent *r, const char *existing, const char *newLink);
+    NULL,                       // int (*unlink_r)(struct _reent *r, const char *name);
+    &EFS_ChDir,                 // int (*chdir_r)(struct _reent *r, const char *name);    
+    NULL,                       // int (*rename_r)(struct _reent *r, const char *oldName, const char *newName);
+    NULL,                       // int (*mkdir_r)(struct _reent *r, const char *path, int mode);
+    
+    sizeof(EFS_DirStruct),      // int dirStateSize;
+    &EFS_DirOpen,               // DIR_ITER* (*diropen_r)(struct _reent *r, DIR_ITER *dirState, const char *path);
+    &EFS_DirReset,              // int (*dirreset_r)(struct _reent *r, DIR_ITER *dirState);
+    &EFS_DirNext,               // int (*dirnext_r)(struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *filestat);
+    &EFS_DirClose               // int (*dirclose_r)(struct _reent *r, DIR_ITER *dirState);    
+};
+
+
+// search into NitroFS
 void ExtractDirectory(char *prefix, u32 dir_id) {
     char strbuf[EFS_MAXPATHLEN];
     u32 entry_start;    // reference location of entry name
     u16 top_file_id;    // file ID of top entry
     u32 file_id;
-    u32 save_filepos = ftell(nds_file);
+    u32 seek_pos = (useDLDI ? lseek(nds_file, 0, SEEK_CUR) : 0);    // save file position if using DLDI
 
-    fseek(nds_file, fnt_offset + 8*(dir_id & 0xFFF), SEEK_SET);
-    fread(&entry_start, 1, sizeof(entry_start), nds_file);
-    fread(&top_file_id, 1, sizeof(top_file_id), nds_file);
-    fseek(nds_file, fnt_offset + entry_start, SEEK_SET);
+    if(useDLDI) {
+        lseek(nds_file, fnt_offset + 8*(dir_id & 0xFFF), SEEK_SET);
+        read(nds_file, &entry_start, sizeof(entry_start));
+        read(nds_file, &top_file_id, sizeof(top_file_id));
+
+        if((searchmode == EFS_LISTDIR) && file_idpos) {
+            lseek(nds_file, file_idpos, SEEK_SET);
+            top_file_id = file_idsize;
+            file_idsize = ~2;
+        } else {
+            lseek(nds_file, fnt_offset + entry_start, SEEK_SET);        
+        }
+    } else {
+        seek_pos = fnt_offset + 8*(dir_id & 0xFFF);
+        memcpy(&entry_start, seek_pos + (void*)GBAROM, sizeof(entry_start));
+        memcpy(&top_file_id, seek_pos + sizeof(entry_start) + (void*)GBAROM, sizeof(top_file_id));
+
+        if((searchmode == EFS_LISTDIR) && file_idpos) {
+            seek_pos = file_idpos;
+            top_file_id = file_idsize;
+            file_idsize = ~2;
+        } else {
+            seek_pos = fnt_offset + entry_start;
+        }
+    }
     
-    if((searchmode == EFS_LISTDIR) && file_idpos)
-            fseek(nds_file, file_idpos, SEEK_SET);
-
     for(file_id=top_file_id; !filematch; file_id++) {
         u8 entry_type_name_length;
         u32 name_length;
         bool entry_type_directory;
         char entry_name[EFS_MAXNAMELEN];
         
-        fread(&entry_type_name_length, 1, sizeof(entry_type_name_length), nds_file);
+        if(useDLDI) {
+            read(nds_file, &entry_type_name_length, sizeof(entry_type_name_length));
+        } else {
+            memcpy(&entry_type_name_length, seek_pos + (void*)GBAROM, sizeof(entry_type_name_length));
+            seek_pos += sizeof(entry_type_name_length);
+        }
+        
         name_length = entry_type_name_length & 127;
         entry_type_directory = (entry_type_name_length & 128) ? true : false;
         if(name_length == 0)
             break;
 
         memset(entry_name, 0, EFS_MAXNAMELEN);
-        fread(entry_name, 1, entry_type_name_length & 127, nds_file);
+
+        if(useDLDI) {
+            read(nds_file, entry_name, entry_type_name_length & 127);
+        } else {
+            memcpy(entry_name, seek_pos + (void*)GBAROM, entry_type_name_length & 127);
+            seek_pos += entry_type_name_length & 127;
+        }        
 
         if(searchmode == EFS_LISTDIR) {
             strcpy(fileInNDS, entry_name);
-            file_idpos = ftell(nds_file);
+            
+            if(useDLDI) {
+                file_idpos = lseek(nds_file, 0, SEEK_CUR);
+            } else {
+                file_idpos = seek_pos;
+            }
+            
             if(entry_type_directory) {
                 file_idpos += 2;
-                file_idsize = 1;
+                file_idsize = ~1;
             } else {
-                file_idsize = 0;
+                u32 top;
+                u32 bottom;
+                u32 fpos = fat_offset + 8*file_id;
+                
+                if(useDLDI) {
+                    lseek(nds_file, fpos, SEEK_SET);
+                    read(nds_file, &top, sizeof(top));
+                    read(nds_file, &bottom, sizeof(bottom));
+                } else {
+                    memcpy(&top, fpos + (void*)GBAROM, sizeof(top));
+                    memcpy(&bottom, fpos + sizeof(top) + (void*)GBAROM, sizeof(bottom));
+                }                
+
+                file_idsize = bottom - top;
             }
             filematch = true;
             break;
@@ -135,13 +232,21 @@ void ExtractDirectory(char *prefix, u32 dir_id) {
 
         if(entry_type_directory) {
             u16 dir_id;
-            fread(&dir_id, 1, sizeof(dir_id), nds_file);
+            
+            if(useDLDI) {
+                read(nds_file, &dir_id, sizeof(dir_id));
+            } else {
+                memcpy(&dir_id, seek_pos + (void*)GBAROM, sizeof(dir_id));
+                seek_pos += sizeof(dir_id);
+            }
+            
             strcpy(strbuf, prefix);
             strcat(strbuf, entry_name);
             strcat(strbuf, "/");
             
-            if((searchmode == EFS_SEARCHDIR) && !strcmp(strbuf, fileInNDS)) {
+            if((searchmode == EFS_SEARCHDIR) && !stricmp(strbuf, fileInNDS)) {
                 file_idpos = dir_id;
+                file_idsize = file_id;
                 filematch = true;
                 break;
             }
@@ -152,30 +257,41 @@ void ExtractDirectory(char *prefix, u32 dir_id) {
             strcpy(strbuf, prefix);
             strcat(strbuf, entry_name);
             
-            if (!strcmp(strbuf, fileInNDS)) {
+            if (!stricmp(strbuf, fileInNDS)) {
                 u32 top;
                 u32 bottom;
                 file_idpos = fat_offset + 8*file_id;
-                fseek(nds_file, file_idpos, SEEK_SET);
-                fread(&top, 1, sizeof(top), nds_file);
-                fread(&bottom, 1, sizeof(bottom), nds_file);
+                
+                if(useDLDI) {
+                    lseek(nds_file, file_idpos, SEEK_SET);
+                    read(nds_file, &top, sizeof(top));
+                    read(nds_file, &bottom, sizeof(bottom));
+                } else {
+                    memcpy(&top, file_idpos + (void*)GBAROM, sizeof(top));
+                    memcpy(&bottom, file_idpos + sizeof(top) + (void*)GBAROM, sizeof(bottom));
+                }
+
                 file_idsize = bottom - top;
+                if(hasLoader)
+                    top += 512;
+                file_idpos = top;
                 filematch = true;
                 break;
             }
         }
     }
-
-    fseek(nds_file, save_filepos, SEEK_SET);
+    
+    // restore initial file position
+    if(!filematch && useDLDI)
+        lseek(nds_file, seek_pos, SEEK_SET);
 }
 
 // check if the file is the good one, and save the path if desired
 bool CheckFile(char *path, bool save) {
     bool ok = false;
     char ext[7], *ext2 = ext + 2;
-    int i;
+    int i, f;
     u32 size;
-    FILE *f;
     
     // check file extension
     strcpy(ext, path + strlen(path) - 6);
@@ -183,10 +299,9 @@ bool CheckFile(char *path, bool save) {
         ext[i] = tolower(ext[i]);
     
     if(!strcmp(ext2, ".nds") || !strcmp(ext2, ".bin") || !strcmp(ext, "ds.gba")) {
-        if((f = fopen(path, "rb+"))) {
+        if((f = open(path, O_RDWR))) {
             // check file size
-            fseek(f, 0, SEEK_END);
-            size = ftell(f);
+            size = lseek(f, 0, SEEK_END);
         
             if(size == efs_filesize) {
                 bool found = false;
@@ -199,11 +314,10 @@ bool CheckFile(char *path, bool save) {
                 strcat(magicString, efsMagicStringP2);
                 
                 // search for magic string
-                i = 0;
-                fseek(f, 0, SEEK_SET);
-                while(!feof(f) && !found) {
-                    dataChunk_size = fread(dataChunk, sizeof(char), EFS_READBUFFERSIZE, f);
-                
+                lseek(f, 0, SEEK_SET);
+                while(efs_offset<size && !found) {
+                    dataChunk_size = read(f, dataChunk, EFS_READBUFFERSIZE);
+                    
                     for(i=0; i < dataChunk_size; i++) {
                         if(dataChunk[i] == magicString[0]) {
                             if(dataChunk_size-i < 12) {
@@ -226,14 +340,24 @@ bool CheckFile(char *path, bool save) {
                     strcpy(efs_path, path);
                     // store file path in NDS
                     if(save) {
-                        fseek(f, efs_offset+20, SEEK_SET);
-                        fwrite(path, 1, 256, f);
+                        // reopening of the file is needed to prevent an offset bug in some DLDI drivers
+                        close(f);
+                        f = open(path, O_RDWR);
+
+                        // correct offset as neoflash DLDI driver has some issues (we know it's word-aligned)
+                        if((efs_offset & 3) < 2)
+                            efs_offset = efs_offset - (efs_offset & 3);
+                        else
+                            efs_offset = efs_offset + 4 - (efs_offset & 3);
+
+                        lseek(f, efs_offset+20, SEEK_SET);
+                        write(f, path, 256);
                     }
                     ok = true;
                 }
             }
         }
-        fclose(f);
+        close(f);
     }
 
     return ok;
@@ -273,260 +397,426 @@ bool SearchDirectory() {
     return found;
 } 
 
+// parse a unix-style path
+void parsePath(const char *inputPath, char *outputPath, bool isDirectory) {
+
+    char *curr = outputPath;
+
+    // skip efs prefix
+    if(strncmp(inputPath, EFS_PREFIX, EFS_PREFIX_LEN) == 0)
+        inputPath += EFS_PREFIX_LEN;
+        
+    if(outputPath != currPath) {
+        // all paths except the current path start with a '/'
+        *curr++ = '/';
+        *curr = '\0';
+
+        // prepend current dir if needed
+        if(inputPath[0] != '/' && *currPath) {        
+            strcat(curr, currPath);    
+            curr += strlen(currPath);
+        }
+    }
+
+    while(*inputPath) {
+    
+        if(*inputPath == '.') {
+        
+            // handle '..'
+            if(inputPath[1] == '.' && (!inputPath[2] || inputPath[2] == '/')) {
+                // go back one directory
+                *--curr = 0;
+                while(curr >= outputPath && *curr != '/')
+                    *curr-- = 0;
+
+                curr++;
+                inputPath += 2;
+            
+            } else {            
+                // if it's only '.'
+                if(!inputPath[1] || inputPath[1] == '/') {
+                    inputPath++; // skip it                    
+                } else {
+                    // it's just a name, copy string
+                    while(*inputPath) {
+                        *curr++ = *inputPath;
+                        
+                        if(*inputPath++ == '/')
+                            break;
+                    }
+                }
+            }                    
+            
+        } else if(*inputPath != '/') {
+        
+            // copy string until next '/' or end
+            while(*inputPath) {
+                *curr++ = *inputPath;
+                
+                if(*inputPath++ == '/')
+                    break;
+            }
+
+        } else {
+        
+            // skip next '/'
+            inputPath++;
+        }
+    }
+
+    // append final '/' if parsed path is a directory
+    if(isDirectory && curr > outputPath && curr[-1] != '/')
+        *curr++ = '/';
+       
+    // append null-terminating character
+    *curr = '\0';
+}
+
 // initialize the file system
-bool EFS_Init(void) {
+int EFS_Init(int options, char *path) {
+
     bool found = false;
 
-    // check if there's already a path stored
-    if(efs_path[0]) {
-        if(CheckFile(efs_path, false)) {
-            found = true;
-        } else {
-            efs_path[0] = '\0';
-        }
-    }
+    // reset current path
+    memset(currPath, 0, EFS_MAXPATHLEN);
 
-    // if no path is defined, search the whole FAT space
-    if(!efs_path[0]) {
-        chdir("/");
-        if(SearchDirectory())
-            found = true;
-    }
-
-    // if nds file is found, open it and read the header
-    if(found) {
-        char buffer[7];
+    // first try to init NitroFS from GBA mem
+    sysSetBusOwners(BUS_OWNER_ARM9, BUS_OWNER_ARM9);    // take gba slot ownership
     
-        nds_file = fopen(efs_path, "rb+");
+    if(strncmp(((const char*)GBAROM)+EFS_LOADERSTROFFSET, EFS_GBALOADERSTR, strlen(EFS_GBALOADERSTR)) == 0) {
 
-        // check for if a loader is present
-        fseek(nds_file, 172, SEEK_SET);
-        fread(buffer, 6, 1, nds_file);
-        buffer[6] = '\0';
+        // there's a GBA loader here
+        memcpy(&fnt_offset, EFS_FNTOFFSET+EFS_LOADEROFFSET + (void*)GBAROM, sizeof(fnt_offset));
+        memcpy(&fat_offset, EFS_FATOFFSET+EFS_LOADEROFFSET + (void*)GBAROM, sizeof(fat_offset));
+        fnt_offset += EFS_LOADEROFFSET;
+        fat_offset += EFS_LOADEROFFSET;
+        hasLoader = true;
+        useDLDI = false;
+        AddDevice(&EFSdevoptab);
+        found = true;
+        strcpy(efs_path, "GBA ROM");
         
-        if(strcmp(buffer, "PASSDF") == 0) {
-            // loader present
-            fseek(nds_file, 512+64, SEEK_SET);
-            fread(&fnt_offset, sizeof(u32), 1, nds_file);
-            fseek(nds_file, 4, SEEK_CUR);
-            fread(&fat_offset, sizeof(u32), 1, nds_file);
-            fnt_offset += 512;
-            fat_offset += 512;
-            hasLoader = true;
-        } else {
-            fseek(nds_file, 64, SEEK_SET);
-            fread(&fnt_offset, sizeof(u32), 1, nds_file);
-            fseek(nds_file, 4, SEEK_CUR);
-            fread(&fat_offset, sizeof(u32), 1, nds_file);
-            hasLoader = false;
+    } else if(strncmp(((const char*)GBAROM)+EFS_LOADERSTROFFSET, EFS_STDLOADERSTR, strlen(EFS_STDLOADERSTR)) == 0) {
+
+        // there's a standard nds loader here
+        memcpy(&fnt_offset, EFS_FNTOFFSET + (void*)GBAROM, sizeof(fnt_offset));
+        memcpy(&fat_offset, EFS_FATOFFSET + (void*)GBAROM, sizeof(fat_offset));
+        hasLoader = false;
+        useDLDI = false;
+        AddDevice(&EFSdevoptab);
+        found = true;        
+        strcpy(efs_path, "GBA ROM");
+        
+    } else {
+
+        // if init from GBA mem failed go for DLDI I/O    
+        useDLDI = true;
+        
+        // init libfat if requested
+        if(options & EFS_AND_FAT) {
+            if(!fatInitDefault())
+                return false;
         }
+
+        // check if the provided path is valid
+        if(path && CheckFile(path, true)) {
+            found = true;
+        } else {
+            // check if there's already a path stored
+            if(efs_path[0]) {
+                if(CheckFile(efs_path, false)) {
+                    found = true;
+                } else {
+                    efs_path[0] = '\0';
+                }
+            }
+
+            // if no path is defined, search the whole FAT space
+            if(!efs_path[0]) {
+                chdir("/");
+                if(SearchDirectory())
+                    found = true;
+            }
+        }
+
+        // if nds file is found, open it and read the header
+        if(found) {
+            char buffer[5];
         
+            nds_file = open(efs_path, O_RDWR);
+
+            // check for if a loader is present
+            lseek(nds_file, EFS_LOADERSTROFFSET, SEEK_SET);
+            read(nds_file, buffer, 6);
+            buffer[7] = '\0';
+            
+            if(strcmp(buffer, EFS_GBALOADERSTR) == 0) {
+                // loader present
+                lseek(nds_file, EFS_LOADEROFFSET+EFS_FNTOFFSET, SEEK_SET);
+                read(nds_file, &fnt_offset, sizeof(u32));
+                lseek(nds_file, 4, SEEK_CUR);
+                read(nds_file, &fat_offset, sizeof(u32));
+                fnt_offset += EFS_LOADEROFFSET;
+                fat_offset += EFS_LOADEROFFSET;
+                hasLoader = true;
+            } else {
+                lseek(nds_file, EFS_FNTOFFSET, SEEK_SET);
+                read(nds_file, &fnt_offset, sizeof(u32));
+                lseek(nds_file, 4, SEEK_CUR);
+                read(nds_file, &fat_offset, sizeof(u32));
+                hasLoader = false;
+            }  
+            
+            AddDevice(&EFSdevoptab);
+        }
     }
+    
+    // set as default device if requested
+    if(found && (options & EFS_DEFAULT_DEVICE))
+        chdir(EFS_DEVICE);      // works better than setDefaultDevice();
 
-    return (found && nds_file);
-}
-
-// terminate the file system
-extern void EFS_Terminate(void) {
-    if(nds_file)
-        fclose(nds_file);
-}
-
-// flush writes in the file system
-extern void EFS_Flush(void) {
-    if(nds_file)
-        fclose(nds_file);
-    nds_file = fopen(efs_path, "rb+");
+    return (found && (!useDLDI || (nds_file != -1)));
 }
 
 // open a file
-EFS_FILE *EFS_fopen(char *fname) {
-    EFS_FILE *file = NULL;
+int EFS_Open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode) {
+    EFS_FileStruct *file = (EFS_FileStruct*)fileStruct;
 
-    if(!nds_file)
-        return NULL;
+    if(useDLDI && !nds_file)
+        return -1;
         
     // search for the file in NitroFS
     filematch = false;
     searchmode = EFS_SEARCHFILE;
     file_idpos = 0;
     file_idsize = 0;
-    
-    if(fname[0] == '/') {
-        strcpy(fileInNDS, fname);
-    } else {
-        strcpy(fileInNDS, "/");
-        strcat(fileInNDS, fname);
-    }
 
-    ExtractDirectory("/", 0xF000);
+    // parse given path
+    parsePath(path, fileInNDS, false);
+    
+    // search into NitroFS
+    ExtractDirectory("/", EFS_NITROROOTID);
     
     if(file_idpos) {
-        u32 top;
-        fseek(nds_file, file_idpos, SEEK_SET);
-        fread(&top, 1, sizeof(top), nds_file);
-        file = (EFS_FILE *)malloc(sizeof(EFS_FILE));
-        if(hasLoader)
-            top += 512;
-        file->seek_start = top;
-        file->seek_pos = top;
-        file->size = file_idsize;
-    }
-  
-    return file;
-}
-
-// set the current position in the file
-extern void EFS_fseek(EFS_FILE *file, int offset, int origin) {
-    switch(origin) {
-        case SEEK_SET:
-            file->seek_pos = file->seek_start + offset;
-            break;
-        case SEEK_CUR:
-            file->seek_pos += offset;
-            break;
-        case SEEK_END:
-            file->seek_pos = file->seek_start + file->size + offset;
-            break;
-    }
-}
-
-// return the current position in file 
-extern int EFS_ftell(EFS_FILE *file) {
-    return (file->seek_pos - file->seek_start);
-}
-
-// read data from current file, returns the number of blocks read
-extern int EFS_fread(void *buffer, u32 blockSize, u32 numBlocks, EFS_FILE *file) {
-    int bytes_read;
-    // seek to right position and read data in buffer
-    fseek(nds_file, file->seek_pos, SEEK_SET);
-    bytes_read = fread(buffer, blockSize, numBlocks, nds_file);
-    if (bytes_read > 0)
-        file->seek_pos += bytes_read * blockSize;
-    return bytes_read;
-}
-
-// write data into current file, return the number of blocks written
-extern int EFS_fwrite(void *buffer, u32 blockSize, u32 numBlocks, EFS_FILE *file) {
-    int bytes_written;
-    // seek to right position and write data from buffer
-    fseek(nds_file, file->seek_pos, SEEK_SET);
-    bytes_written = fwrite(buffer, blockSize, numBlocks, nds_file);
-    if (bytes_written > 0)
-        file->seek_pos += bytes_written * blockSize;
-    return bytes_written;
-}
-
-// close current file
-void EFS_fclose(EFS_FILE *file) {
-    free(file);
-#ifndef EFS_NO_AUTOFLUSH    
-    EFS_Flush();
-#endif
-}
-
-// return file size
-extern u32 EFS_GetFileSize(EFS_FILE *file) {
-    return file->size;
-}
-
-extern int EFS_size(char* path) {
-	int tempReturn;
-	EFS_FILE* gameFile;
-	gameFile = EFS_fopen(path);
-	tempReturn = EFS_GetFileSize(gameFile);
-	EFS_fclose(gameFile);
-	return tempReturn;
-}
-
-// return true if at the end of file
-extern bool EFS_feof(EFS_FILE *file) {
-    return (file->seek_start+file->size < file->seek_pos);
-}
-
-// open a directory
-extern EFS_DIR *EFS_diropen(const char *path) {
-    EFS_DIR *dir = NULL;
-
-    if(!nds_file)
-        return NULL;
-        
-    // search for the directory in NitroFS
-    filematch = false;
-    searchmode = EFS_SEARCHDIR;
-    file_idpos = 0;
-    file_idsize = 0;
-    strcpy(fileInNDS, path);
-    
-    if(fileInNDS[strlen(fileInNDS)-1] != '/')
-        strcat(fileInNDS, "/");
-
-    ExtractDirectory("/", 0xF000);
-    
-    if(file_idpos) {
-        dir = (EFS_DIR *)malloc(sizeof(EFS_DIR));
-        dir->dir_id = file_idpos;
-        dir->curr_seek = 0;
-    }
-  
-    return dir;
-}
-
-// go back to the beginning of the directory
-extern void EFS_dirreset(EFS_DIR *dir) {
-    dir->curr_seek = 0;
-}
-
-// read next entry of the directory, and fill in its filename.
-// return -1 if it's end of the directory or error, 0 if the new entry is a file,
-// 1 if the new entry is a directory
-extern int EFS_dirnext(EFS_DIR *dir, char *fname) {
-    if(!nds_file)
-        return -1;
-        
-    // search for the file in NitroFS
-    filematch = false;
-    searchmode = EFS_LISTDIR;
-    file_idpos = dir->curr_seek;
-    file_idsize = 2;
-    ExtractDirectory("", dir->dir_id);
-    
-    if(file_idsize != 2) {
-        strcpy(fname, fileInNDS);
-        dir->curr_seek = file_idpos;
-        return file_idsize;
+        file->start = file_idpos;
+        file->pos = file_idpos;
+        file->end = file_idpos + file_idsize;        
+        return 0;
     }
   
     return -1;
 }
 
+// set the current position in the file
+int EFS_Seek(struct _reent *r, int fd, int pos, int dir) {
+    EFS_FileStruct *file = (EFS_FileStruct*)fd;    
+    switch(dir) {
+        case SEEK_SET:
+            file->pos = file->start + pos;
+            break;
+        case SEEK_CUR:
+            file->pos += pos;
+            break;
+        case SEEK_END:
+            file->pos = file->end + pos;
+            break;
+    }
+    return (file->pos - file->start);
+}
+
+// read data from file
+int EFS_Read(struct _reent *r, int fd, char *ptr, int len) {
+    EFS_FileStruct *file = (EFS_FileStruct*)fd; 
+
+    if(file->pos+len > file->end) 
+        len = file->end - file->pos;    // don't read past the end of the file
+    if(file->pos > file->end)
+        return 0;   // EOF
+    
+    if (useDLDI) {    
+        // seek to right position and read data
+        lseek(nds_file, file->pos, SEEK_SET);
+        len = read(nds_file, ptr, len);
+    } else {    
+        memcpy(ptr, file->pos + (void*)GBAROM, len);
+    }
+    if (len > 0)
+        file->pos += len;        
+        
+    return len;
+}
+
+// write data to file (only works using DLDI)
+int EFS_Write(struct _reent *r, int fd, const char *ptr, int len) {
+    EFS_FileStruct *file = (EFS_FileStruct*)fd; 
+
+    if(file->pos+len > file->end) 
+        len = file->end - file->pos;    // don't write past the end of the file
+    if(file->pos > file->end)
+        return 0;   // EOF
+    
+    if (useDLDI) {    
+        // seek to right position and write data
+        lseek(nds_file, file->pos, SEEK_SET);
+        len = write(nds_file, ptr, len);
+        if (len > 0)
+            file->pos += len;    
+        hasWritten = true;
+    } else {    
+        return 0;
+    }
+        
+    return len;
+}
+
+// close current file
+int EFS_Close(struct _reent *r, int fd) {
+    // flush writes in the file system
+    if(useDLDI && hasWritten) {
+        if(nds_file)
+            close(nds_file);
+        nds_file = open(efs_path, O_RDWR);
+    }
+    return 0;
+}
+
+// open a directory
+DIR_ITER* EFS_DirOpen(struct _reent *r, DIR_ITER *dirState, const char *path) {
+    EFS_DirStruct *dir = (EFS_DirStruct*)dirState->dirStruct;
+
+    if(useDLDI && !nds_file)
+        return NULL;
+        
+    // search for the directory in NitroFS
+    filematch = false;
+    searchmode = EFS_SEARCHDIR;
+    file_idpos = ~1;
+    file_idsize = 0;
+
+    // parse given path
+    parsePath(path, fileInNDS, true);
+    
+    // are we trying to list the root path?
+    if(!strcmp(fileInNDS, "/"))
+        file_idpos = EFS_NITROROOTID;
+    else
+        ExtractDirectory("/", EFS_NITROROOTID);
+    
+    if(file_idpos != ~1) {
+        dir->dir_id = file_idpos;
+        dir->curr_file_id = file_idsize;
+        dir->pos = ~1;
+        return dirState;
+    }
+  
+    return NULL;
+}
+
+// go back to the beginning of the directory
+int EFS_DirReset(struct _reent *r, DIR_ITER *dirState) {
+    EFS_DirStruct *dir = (EFS_DirStruct*)dirState->dirStruct;    
+
+    if(useDLDI) {
+        lseek(nds_file, fnt_offset + 8*(dir->dir_id & 0xFFF) + 4, SEEK_SET);
+        read(nds_file, &dir->curr_file_id, sizeof(dir->curr_file_id));
+    } else {
+        memcpy(&dir->curr_file_id, fnt_offset + 8*(dir->dir_id & 0xFFF) + 4 + (void*)GBAROM, sizeof(dir->curr_file_id));
+    }
+    dir->pos = ~1;
+    return 0;
+}
+
+// read next entry of the directory
+int EFS_DirNext(struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *st) {
+    EFS_DirStruct *dir = (EFS_DirStruct*)dirState->dirStruct;
+
+    if(useDLDI && !nds_file)
+        return -1;
+    
+    // special case for ".." and "."
+    if(dir->pos == ~1 || dir->pos == ~0) {
+        strcpy(filename, ".");
+        
+        if(dir->pos == ~0)
+            strcat(filename, ".");
+
+        st->st_mode = S_IFDIR;
+        dir->pos++;
+        
+        return 0;
+    
+    } else {
+        
+        // search for the file in NitroFS
+        filematch = false;
+        searchmode = EFS_LISTDIR;
+        file_idpos = dir->pos;
+        file_idsize = dir->curr_file_id;
+
+        ExtractDirectory("", dir->dir_id);
+        
+        if(file_idsize != ~2) {
+            strcpy(filename, fileInNDS);
+            dir->pos = file_idpos;
+            dir->curr_file_id++;
+            
+            if(file_idsize != ~1) {
+                st->st_mode = 0;
+                st->st_size = file_idsize;
+            } else {
+                st->st_mode = S_IFDIR;
+            }        
+
+            return 0;
+        }    
+    }
+
+    return -1;
+}
+
+// get some info on a file
+int EFS_Fstat(struct _reent *r, int fd, struct stat *st) {
+    EFS_FileStruct *file = (EFS_FileStruct*)fd;
+    st->st_size = file->end - file->start;
+    // maybe add some other info?
+    return 0;    
+}
+
+// get some info on a file from a path
+int EFS_Stat(struct _reent *r, const char *file, struct stat *st) {
+    EFS_FileStruct fs;
+    
+    if(EFS_Open(NULL, &fs, file, 0, 0))
+        return -1;
+        
+    st->st_size = fs.end - fs.start;
+    // maybe add some other info?
+    return 0;
+}
+
 // close a directory
-extern void EFS_dirclose(EFS_DIR *dir) {
-    free(dir);
+int EFS_DirClose(struct _reent *r, DIR_ITER *dirState) {
+    return 0;
 }
 
-#else   // tweak here some functions for libfat mode compatibility
+// change current directory
+int EFS_ChDir(struct _reent *r, const char *name) {
 
-extern u32 EFS_GetFileSize(EFS_FILE *file) {
-    fseek(file, 0, SEEK_END);
-    return ftell(file);
+    if(!name)
+        return -1;
+        
+    // parse given path
+    parsePath(name, currPath, true);
+
+    return 0;
 }
 
-extern int EFS_dirnext(EFS_DIR *dir, char *fname) {
-    struct stat st;
-    int err = dirnext(dir, fname, &st);
-    if(!err && (st.st_mode & S_IFDIR))
-        return 1;
-    return err;
-}
 
-#endif  // ifndef EFS_REAL_FAT_MODE
 
 // reserved space for post-compilation adding of EFS tags
 asm (
 "@--------------------------------------------------------------------------------------\n"
-"   .balign	32                                                                          \n"
+"   .balign    32                                                                       \n"
 "   .arm                                                                                \n"
 "@--------------------------------------------------------------------------------------\n"
 "   .word   0xBFA905CE      @ Magic number to identify this region                      \n"
